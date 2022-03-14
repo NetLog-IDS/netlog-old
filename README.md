@@ -4,4 +4,4 @@ Simple tool for editing network packet header fields. Works by first running a l
 
 ## Dependencies
 
-- [libtins](https://github.com/mfontanini/libtins)O
+- [libtins](https://github.com/mfontanini/libtins)
