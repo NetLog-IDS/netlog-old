@@ -6,8 +6,17 @@ Simple tool for editing network packet header fields. Works by first running a l
 
 ### Building the project
 
+```
+git clone https://github.com/adriancostin6/nped.git
+cd nped
+mkdir build
+cmake ..
+cmake --build .
+```
+
 ### Usage
 
 ## Dependencies
 
 - [libtins](https://github.com/mfontanini/libtins)
+- [cmake](https://cmake.org/)
