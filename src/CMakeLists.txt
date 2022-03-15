@@ -1,6 +1,8 @@
 add_executable(nped 
         capture.h
         capture.cpp
+        option-parser.h
+        option-parser.cpp
         main.cpp
 )
 

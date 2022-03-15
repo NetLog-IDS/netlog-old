@@ -17,7 +17,7 @@ private:
     void setup(SnifferType st, const char *iface, const char *ptype);
     bool callback(Tins::PDU& pdu);
 
-    std::unique_ptr<Tins::BaseSniffer> sniffer;
+    std::unique_ptr<Tins::BaseSniffer> sniffer_;
 };
 }
 #endif //CAPJSON_CAPTURE_H

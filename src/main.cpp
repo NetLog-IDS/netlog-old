@@ -1,30 +1,15 @@
 #include <stdio.h>
 
 #include "capture.h"
+#include "option-parser.h"
 
-#define EXIT_FAIL -1
-
-bool args_ok(int argc);
 
 int main(int argc, char *argv[]) {
-//    if (!args_ok(argc)) { 
-//        return -1;
-//    }
+    nped::CmdlineOptionParser opt_parser(argc, argv);
 
     nped::PacketSniffer ps(nped::SnifferType::FileSniffer,
-                           "enp0s25",
-                           "");
-    ps.run_sniffer();
-}
+                           opt_parser.get_opt("-i").data(),
+                           opt_parser.get_opt("-f").data());
 
-bool args_ok(int argc) {
-    if (argc < 2) {
-        printf("Usage: # ./nped [options]\n"
-               "  options:\n"
-               "example: # \n"
-               "description: Edits captured network packet fields"
-               "note: Needs to be run as root.\n");
-        return false;
-    }
-    return true;
+    ps.run_sniffer();
 }

@@ -18,9 +18,9 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *ptype) 
 
     try {
         if (st == SnifferType::FileSniffer) {
-            sniffer = std::make_unique<Tins::Sniffer>(iface, config);
+            sniffer_ = std::make_unique<Tins::Sniffer>(iface, config);
         } else {
-            sniffer = std::make_unique<Tins::FileSniffer>(iface, config);
+            sniffer_ = std::make_unique<Tins::FileSniffer>(iface, config);
         }
     } catch (std::exception &ex) {
         std::cerr << "Error:" << ex.what() << std::endl;
@@ -34,7 +34,7 @@ bool PacketSniffer::callback(Tins::PDU& pdu) {
 
 void PacketSniffer::run_sniffer() {
     try {
-        sniffer->sniff_loop(std::bind(
+        sniffer_->sniff_loop(std::bind(
                                &PacketSniffer::callback,
                                this,
                                std::placeholders::_1));
