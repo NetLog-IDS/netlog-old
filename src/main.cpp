@@ -1,15 +1,39 @@
-#include <stdio.h>
+#include <stdexcept>
+#include <iostream>
 
 #include "capture.h"
-#include "option-parser.h"
+#include "utils/option-parser.h"
 
 
 int main(int argc, char *argv[]) {
-    nped::CmdlineOptionParser opt_parser(argc, argv);
+    try {
+        nped::CmdlineOptionParser opt_parser(argc, argv);
+        
+        auto iface = opt_parser.get_opt("i");
+        auto filter = opt_parser.get_opt("f");
 
-    nped::PacketSniffer ps(nped::SnifferType::FileSniffer,
-                           opt_parser.get_opt("-i").data(),
-                           opt_parser.get_opt("-f").data());
+        if (iface.size() != 1 || filter.empty()) {
+            throw std::invalid_argument("Invalid input arguments");
+        }
 
-    ps.run_sniffer();
+        std::string pcap_filter = "";
+        for (auto s: filter) {
+            pcap_filter.append(s);
+            pcap_filter.append(" ");
+        }
+
+        nped::PacketSniffer ps(nped::SnifferType::FileSniffer,
+                               iface[0].data(),
+                               pcap_filter.data());
+
+        ps.run_sniffer();
+    } catch (std::invalid_argument& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Usage: ./nped -i INTERFACE -f filter" << std::endl;
+        return -1;
+    } catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
+    return 0;
 }

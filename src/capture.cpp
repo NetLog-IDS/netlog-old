@@ -5,6 +5,7 @@
 #include <functional>
 
 namespace nped {
+
 PacketSniffer::PacketSniffer(SnifferType st,
                              const char *iface,
                              const char *ptype) { 
@@ -23,7 +24,7 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *ptype) 
             sniffer_ = std::make_unique<Tins::FileSniffer>(iface, config);
         }
     } catch (std::exception &ex) {
-        std::cerr << "Error:" << ex.what() << std::endl;
+        throw std::runtime_error(ex.what());
     }
 }
 
@@ -39,7 +40,8 @@ void PacketSniffer::run_sniffer() {
                                this,
                                std::placeholders::_1));
     } catch (std::exception &ex) {
-        std::cerr << "Error:" << ex.what() << std::endl;
+        throw std::runtime_error(ex.what());
     }
 }
+
 }
