@@ -2,19 +2,38 @@
 #define OPTION_PARSER_H
 
 #include <string_view>
-#include <unordered_map>
 #include <vector>
+#include <utility>
 
 namespace nped {
 
 class CmdlineOptionParser {
 public:
-    CmdlineOptionParser(int argc, char *argv[]);
-    std::vector<std::string_view> get_opt(std::string_view flag);
-private:
-    uint8_t arg_prefix_len(char *arg);
+    typedef std::string_view ArgName;
+    typedef std::vector<ArgName> ArgVector;
+    typedef std::pair<ArgName, ArgVector> NamedPair;
+    typedef std::vector<NamedPair> NamedPairVector;
 
-    std::unordered_map<std::string_view, std::vector<std::string_view>> args_;
+    // Single Switch - Singular switch (e.g: -i -o -a --sort)
+    // Multi Switch - Multiple options (e.g.: -ioa)
+    enum class SwitchType { SINGLE, MULTI };
+    typedef std::pair<SwitchType, ArgName> SwitchPair;
+    typedef std::vector<SwitchPair> SwitchPairVector;
+
+public:
+    CmdlineOptionParser(int argc, char *argv[]);
+    const NamedPairVector& flags() const;
+    const SwitchPairVector& switches() const;
+    const ArgVector& args() const;
+
+private:
+    ArgVector get_flag_args(char *argv[], int argc, int& pos);
+    uint8_t arg_prefix_len(char *arg);
+    bool is_switch(char *arg_v[], int argc, int pos);
+
+    NamedPairVector flags_;
+    SwitchPairVector switches_;
+    ArgVector arguments_;
 };
 
 }
