@@ -14,31 +14,26 @@ int main(int argc, char *argv[]) {
         auto switches = ap.switches();
 
         // Search for interface and filters
-        auto iface = 
-            std::find_if(flags.begin(),
-                         flags.end(),
-                         [](auto pair) { return pair.first == "i"; });
-        auto filter = 
-            std::find_if(flags.begin(),
-                         flags.end(),
-                         [](auto pair) { return pair.first == "f"; });
+        auto iface = ap.find_flag("i");
+        auto filter = ap.find_flag("f");
 
         // Interface is mandatory for now, TODO capture from default interface if none is specified
-        if (iface == flags.end()) {
+        if (!iface) {
             throw std::invalid_argument("Invalid input arguments");
         }
 
         // Populate filters if present
         std::string pcap_filter = "";
-        if (filter != flags.end()) {
-            for (auto s: filter->second) {
+        if (filter) {
+            for (auto s: filter.value()) {
                 pcap_filter.append(s);
                 pcap_filter.append(" ");
             }
+            pcap_filter.pop_back();
         }
 
         nped::PacketSniffer ps(nped::SnifferType::FileSniffer,
-                               iface->second[0].data(),
+                               iface.value()[0].data(),
                                pcap_filter.data());
 
         ps.run_sniffer();
