@@ -1,4 +1,4 @@
-#include "capture.h"
+#include "nped/sniffer.h"
 
 #include <iostream>
 #include <exception>
@@ -19,21 +19,22 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *ptype) 
 
     try {
         if (st == SnifferType::FileSniffer) {
-            sniffer_ = std::make_unique<Tins::Sniffer>(iface, config);
-        } else {
             sniffer_ = std::make_unique<Tins::FileSniffer>(iface, config);
+        } else {
+            sniffer_ = std::make_unique<Tins::Sniffer>(iface, config);
         }
-    } catch (std::exception &ex) {
-        throw std::runtime_error(ex.what());
+    } catch (Tins::pcap_error &e) {
+        throw std::runtime_error("Invalid path to '.pcap' file.");
+    } catch (std::exception &e) {
+        throw std::runtime_error(e.what());
     }
 }
 
 bool PacketSniffer::callback(Tins::PDU& pdu) { 
-    std::cout << "Hello, world\n";
     return true;
 }
 
-void PacketSniffer::run_sniffer() {
+void PacketSniffer::run() {
     try {
         sniffer_->sniff_loop(std::bind(
                                &PacketSniffer::callback,

@@ -12,7 +12,10 @@ enum class SnifferType { Sniffer, FileSniffer };
 class PacketSniffer {
 public:
     PacketSniffer(SnifferType st, const char *iface, const char *ptype);
-    void run_sniffer();
+
+    PacketSniffer() = delete;
+
+    void run();
 private:
     void setup(SnifferType st, const char *iface, const char *ptype);
     bool callback(Tins::PDU& pdu);
