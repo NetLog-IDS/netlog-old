@@ -6,8 +6,11 @@
 #include <condition_variable>
 
 /**
- *  Thread safe queue inspired by
- *  https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
+ * @class ThreadSafeQueue
+ * @brief Wrapper over std::queue, trying to be thread-safe.
+ *
+ * @note
+ * Inspired by https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html.
  * */
 template <typename T>
 class ThreadSafeQueue {

@@ -11,6 +11,12 @@ namespace nped {
 
 enum class SnifferType { Sniffer, FileSniffer };
 
+/**
+ * @class PacketSniffer
+ *
+ * @brief Responsible for setting up and running the packet capture process via
+ * the libtins library.
+ * */
 class PacketSniffer {
 public:
     PacketSniffer(SnifferType st, const char *iface, const char *ptype);

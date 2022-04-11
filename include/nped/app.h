@@ -8,6 +8,10 @@
 
 namespace nped {
 
+/**
+ * @class Application
+ * @brief Manages application data and initiates program execution.
+ * */
 class Application {
 public:
     Application(int argc, char *argv[]);
