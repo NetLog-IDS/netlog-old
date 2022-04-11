@@ -5,32 +5,50 @@
 #include <mutex>
 #include <condition_variable>
 
+/**
+ *  Thread safe queue inspired by
+ *  https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
+ * */
 template <typename T>
 class ThreadSafeQueue {
 public:
-    void push(const T& element){
-        std::scoped_lock lock(mutex_);
-        bool prev_empty = queue_.empty();
-
-        queue_.push_data(element);
-
-        lock.unlock();
-        if (prev_empty) {
-            condition_var_.notify_one();
+    void push(const T &element){
+        {
+            std::scoped_lock lock(mutex_);
+            queue_.push(element);
         }
+
+        condition_var_.notify_one();
     }
 
-    T& pop() { 
-        std::scoped_lock lock(mutex_);
+    T pop() { 
+        std::unique_lock<std::mutex> lock(mutex_);
 
         if(queue_.empty()) {
             condition_var_.wait(lock);
         }
 
-        T& value = queue_.front();
+        T value = queue_.front();
         queue_.pop();
 
         return value;
+    }
+
+    bool empty() {
+        std::scoped_lock lock(mutex_);
+        return queue_.empty();
+    }
+
+    bool try_pop(T &element) {
+        std::scoped_lock lock(mutex_);
+
+        if(queue_.empty()) {
+            return false;
+        }
+        
+        element = queue_.front();
+        queue_.pop();
+        return true;
     }
 private:
     std::queue<T> queue_;

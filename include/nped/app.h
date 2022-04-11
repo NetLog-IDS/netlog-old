@@ -23,8 +23,8 @@ private:
     cclap::ArgParser arg_parser_;
 //    PacketEditor editor_;
 
-    ThreadSafeQueue<Tins::PDU> packetq_;
-    std::vector<Tins::PDU> edited_packets_;
+    ThreadSafeQueue<Tins::Packet> packetq_;
+    std::vector<Tins::Packet> edited_packets_;
 };
 
 }
