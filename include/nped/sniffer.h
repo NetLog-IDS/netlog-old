@@ -14,7 +14,6 @@ enum class SnifferType { Sniffer, FileSniffer };
 class PacketSniffer {
 public:
     PacketSniffer(SnifferType st, const char *iface, const char *ptype);
-
     PacketSniffer() = delete;
 
     void run(ThreadSafeQueue<Tins::Packet>& packetq, bool &running);
@@ -25,7 +24,6 @@ private:
                   bool &running);
 
     std::unique_ptr<Tins::BaseSniffer> sniffer_;
-    uint8_t np = 0;
 };
 }
 #endif //CAPJSON_CAPTURE_H

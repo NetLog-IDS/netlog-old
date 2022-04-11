@@ -36,9 +36,6 @@ PacketSniffer::callback(Tins::Packet &packet,
                         ThreadSafeQueue<Tins::Packet> &packetq,
                         bool &running) { 
     packetq.push(packet);
-
-//    np++;
-//    return np <= 100 ? true : false;
     return running;
 }
 

@@ -49,6 +49,7 @@ void Application::start() {
                                  PacketSniffer ps(st, iface_value.data(),
                                                   pcap_filter_value.data());
                                  ps.run(pq, running);
+                                 std::cout << "captured: " << ps.get_pknt() << " packets\n";
                              });
 
 
@@ -58,11 +59,8 @@ void Application::start() {
                                          break;
                                      }
 
-                                     if (pq.empty()) {
-                                         continue;
-                                     } else {
-                                         auto packet = pq.pop();
-                                         edp.push_back(packet);
+                                     if (!pq.empty()) {
+                                         edp.push_back(pq.pop());
                                      }
                                  } 
                              });
@@ -78,17 +76,7 @@ void Application::start() {
 
         wait_for_key.join();
 
-        // TODO start a second thread for live capture
-
-        //        PacketSniffer ps(st, iface_value.data(), pcap_filter_value.data());
-
-        // TODO thread 1 - capture packets -- accesses packet pool
-        //       ps.run(packetq_);
-
-        // TODO thread 2 - edit packets -- accesses packet pool
-        //        PacketEditor pe;
-        //        pe.edit_next_packet(PacketPool& p);
-        std::cout << "Work is done! Captured and edited "<< 
+        std::cout << "Work is done! Edited "<< 
             edited_packets_.size() << " packets.\n" <<
             "Press any key to exit...";
         std::cin.get();
