@@ -14,6 +14,13 @@ $ cmake ..
 $ cmake --build .
 ```
 
+### Generating documentation
+
+```bash
+$ cd nped
+$ doxygen doc/Doxyfile.in
+```
+
 ### Usage
 
 ```bash
