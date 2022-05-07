@@ -11,5 +11,6 @@ set_target_properties(nped
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
-target_link_libraries(nped PRIVATE cclap PRIVATE tins PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(nped PRIVATE cclap PRIVATE tins)
 target_include_directories(nped PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include)
+

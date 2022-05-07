@@ -19,12 +19,12 @@ enum class SnifferType { Sniffer, FileSniffer };
  * */
 class PacketSniffer {
 public:
-    PacketSniffer(SnifferType st, const char *iface, const char *ptype);
+    PacketSniffer(SnifferType st, const char *iface, const char *capture_filter);
     PacketSniffer() = delete;
 
     void run(ThreadSafeQueue<Tins::Packet>& packetq, bool &running);
 private:
-    void setup(SnifferType st, const char *iface, const char *ptype);
+    void setup(SnifferType st, const char *iface, const char *capture_filter);
     bool callback(Tins::Packet& packet,
                   ThreadSafeQueue<Tins::Packet>& packetq,
                   bool &running);

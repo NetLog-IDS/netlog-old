@@ -63,7 +63,15 @@ void Application::start() {
                                      }
 
                                      if (!pq.empty()) {
-                                         edp.push_back(pq.pop());
+                                         // processing on the packets here
+                                         Tins::Packet p = pq.pop(); // maybe copy here
+
+                                         // search for field
+                                         // replace the text
+                                         //spoof_packet(&p); //TODO impl this
+
+                                         //edp.push_back(pq.pop());
+                                         edp.push_back(p);
                                      }
                                  } 
                              });

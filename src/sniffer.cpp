@@ -11,13 +11,13 @@ namespace nped {
  * @param[in] st Type of Sniffer used in the packet capture process.
  * @param[in] iface Name of interface on which to run the capture. Can be a
  * file path, if using the file sniffer.
- * @param[in] ptype Type of packet to capture, contains PCAP filter
+ * @param[in] capture_filter Type of packet to capture, contains PCAP filter
  * @returns PacketSniffer object
  * */
 PacketSniffer::PacketSniffer(SnifferType st,
                              const char *iface,
-                             const char *ptype) { 
-    setup(st, iface, ptype);
+                             const char *capture_filter) { 
+    setup(st, iface, capture_filter);
 }
 
 /**
@@ -25,12 +25,12 @@ PacketSniffer::PacketSniffer(SnifferType st,
  * @param[in] st Type of Sniffer used in the packet capture process.
  * @param[in] iface Name of interface on which to run the capture. Can be a
  * file path, if using the file sniffer.
- * @param[in] ptype Type of packet to capture, contains PCAP filter
+ * @param[in] capture_filter Type of packet to capture, contains PCAP filter
  * */
-void PacketSniffer::setup(SnifferType st, const char *iface, const char *ptype) {
+void PacketSniffer::setup(SnifferType st, const char *iface, const char *capture_filter) {
     Tins::SnifferConfiguration config;
     config.set_promisc_mode(true);
-    config.set_filter(ptype);
+    config.set_filter(capture_filter);
 
     try {
         if (st == SnifferType::FileSniffer) {
