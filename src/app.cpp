@@ -1,13 +1,13 @@
-#include "nped/app.h"
+#include "spoofy/app.h"
 
 #include <stdexcept>
 #include <string>
 #include <thread>
 #include <iostream>
 
-#include "nped/sniffer.h"
+#include "spoofy/sniffer.h"
 
-namespace nped {
+namespace spoofy {
 
 /**
  * @brief Class constructor.
@@ -64,14 +64,7 @@ void Application::start() {
 
                                      if (!pq.empty()) {
                                          // processing on the packets here
-                                         Tins::Packet p = pq.pop(); // maybe copy here
-
-                                         // search for field
-                                         // replace the text
-                                         //spoof_packet(&p); //TODO impl this
-
-                                         //edp.push_back(pq.pop());
-                                         edp.push_back(p);
+                                         edp.push_back(pq.pop());
                                      }
                                  } 
                              });
@@ -82,10 +75,10 @@ void Application::start() {
                                      std::cin.get();
 
                                      running = false;
-                                     producer.join();
-                                     consumer.join();
                                  });
         wait_for_key.join();
+        producer.join();
+        consumer.join();
 
         std::cout << "Work is done! Edited "<< 
             edited_packets_.size() << " packets.\n" <<

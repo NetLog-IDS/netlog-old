@@ -1,10 +1,10 @@
-#include "nped/sniffer.h"
+#include "spoofy/sniffer.h"
 
 #include <iostream>
 #include <exception>
 #include <functional>
 
-namespace nped {
+namespace spoofy {
 
 /**
  * @brief Class constructor.

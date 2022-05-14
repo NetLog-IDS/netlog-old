@@ -4,9 +4,9 @@
 #include <tins/tins.h>
 #include <cclap/cclap.h>
 
-#include "nped/utils/queue.h"
+#include "spoofy/utils/queue.h"
 
-namespace nped {
+namespace spoofy {
 
 /**
  * @class Application

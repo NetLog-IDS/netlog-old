@@ -1,13 +1,13 @@
-#ifndef CAPJSON_CAPTURE_H
-#define CAPJSON_CAPTURE_H
+#ifndef _CAPTURE_H_
+#define _CAPTURE_H_
 
 #include<memory>
 
 #include <tins/tins.h>
 
-#include "nped/utils/queue.h"
+#include "spoofy/utils/queue.h"
 
-namespace nped {
+namespace spoofy {
 
 enum class SnifferType { Sniffer, FileSniffer };
 
@@ -32,4 +32,4 @@ private:
     std::unique_ptr<Tins::BaseSniffer> sniffer_;
 };
 }
-#endif //CAPJSON_CAPTURE_H
+#endif // _CAPTURE_H_
