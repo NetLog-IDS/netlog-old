@@ -1,6 +1,7 @@
 add_executable(spoofy 
         sniffer.cpp
         spoofer.cpp
+        sender.cpp
         app.cpp
         main.cpp
 )
