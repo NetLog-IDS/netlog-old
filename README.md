@@ -11,14 +11,6 @@ $ git clone https://github.com/adriancostin6/spoofy.git
 $ make
 ```
 
-### Generating documentation
-
-```bash
-$ cd nped
-$ make docs
-$ doxygen doc/Doxyfile.in
-```
-
 ### Usage
 
 ```bash
