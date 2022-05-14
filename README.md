@@ -8,6 +8,7 @@ Spoofs and forwards network packets.
 
 ```bash
 $ git clone https://github.com/adriancostin6/spoofy.git
+$ cd spoofy
 $ make
 ```
 
