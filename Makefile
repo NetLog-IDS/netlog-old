@@ -18,6 +18,17 @@ BUILD_FOLDER := build
 
 .PHONY: default setup debug release test
 
+setup:
+ifeq ($(detected_OS),Windows) 
+	cmd /C setup/setup.bat
+endif
+ifeq ($(detected_OS),Darwin)
+	./setup/setup.sh mac
+endif
+ifeq ($(detected_OS),Linux) 
+	./setup/setup.sh linux
+endif
+
 default:
 	$(MAKE) debug
 
@@ -44,13 +55,3 @@ test:
 clean:
 	rm -rf build
 
-setup:
-ifeq ($(detected_OS),Windows) 
-	cmd /C setup/setup.bat
-endif
-ifeq ($(detected_OS),Darwin)
-	./setup/setup.sh mac
-endif
-ifeq ($(detected_OS),Linux) 
-	./setup/setup.sh linux
-endif
