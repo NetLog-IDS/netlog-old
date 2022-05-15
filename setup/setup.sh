@@ -1,8 +1,8 @@
 # ensure libpcap is installed
-PACKAGE = libpcap
-if [ '$1' == 'mac' ]; then
+package = libpcap
+if [ $1 == 'mac' ]; then
   brew install libpcap 
-elif [ '$1' == 'linux' ]; then
+elif [ $1 == 'linux' ]; then
   APT_CMD = $(which apt-get)    # Debian based distro
   PACMAN_CMD = $(which pacman)  # Arch based distro
   YUM_CMD = $(which yum)        # Red Hat based distro
@@ -21,7 +21,7 @@ elif [ '$1' == 'linux' ]; then
   elif [ ! -z $PORTAGE_CMD ]; then
     emerge net-libs/libpcap
   else
-    echo "Error installing $PACKAGE. Package manager not supported in setup script, you are on your own! :D"
+    echo "Error installing $package. Package manager not supported in setup script, you are on your own! :D"
     exit 1
   fi
 else
