@@ -11,15 +11,15 @@ elif [ $1 = "linux" ]; then
   portage_cmd=$(which emerge) # Gentoo based distro
 
   if [ ! -z $apt_cmd ]; then
-    apt install -y libpcap
+    sudo apt install -y libpcap
   elif [ ! -z $pacman_cmd ]; then
-    pacman -Sy libpcap --noconfirm
+    sudo pacman -Sy libpcap --noconfirm
   elif [ ! -z $yum_cmd ]; then
-    yum -y install libpcap
+    sudo yum -y install libpcap
   elif [ ! -z $zypper_cmd ]; then
-    zypper --non-interactive install libpcap
+    sudo zypper --non-interactive install libpcap
   elif [ ! -z $portage_cmd ]; then
-    emerge net-libs/libpcap
+    sudo emerge net-libs/libpcap
   else
     echo "Error installing $package. Package manager not supported in setup script, you are on your own! Ending build..."
     exit 1
