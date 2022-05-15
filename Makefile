@@ -19,14 +19,14 @@ BUILD_FOLDER := build
 .PHONY: default setup debug release test
 
 setup:
-ifeq ($(detected_OS),Windows) 
+ifeq ($(detected_OS), Windows) 
 	cmd /C setup/setup.bat
 endif
-ifeq ($(detected_OS),Darwin)
-	./setup/setup.sh mac
-endif
-ifeq ($(detected_OS),Linux) 
+ifeq ($(detected_OS), Linux) 
 	./setup/setup.sh linux
+endif
+ifeq ($(detected_OS), Darwin)
+	./setup/setup.sh mac
 endif
 
 default:
