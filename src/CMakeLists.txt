@@ -14,5 +14,5 @@ set_target_properties(spoofy
     )
 
 target_link_libraries(spoofy PRIVATE cclap PRIVATE tins)
-target_include_directories(spoofy PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include)
+target_include_directories(spoofy PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include ${libtins_SOURCE_DIR}/include)
 
