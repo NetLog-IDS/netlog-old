@@ -13,6 +13,8 @@ set_target_properties(spoofy
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
-target_link_libraries(spoofy PRIVATE cclap PRIVATE tins)
+find_package(Threads REQUIRED)
+
+target_link_libraries(spoofy PRIVATE cclap PRIVATE tins PRIVATE Threads::Threads)
 target_include_directories(spoofy PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include ${libtins_SOURCE_DIR}/include)
 

@@ -1,4 +1,4 @@
-if (NPED_BUILD_TESTS)
+if (SPOOFY_BUILD_TESTS)
     include (CTest)
     include (Catch)
 

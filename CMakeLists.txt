@@ -35,7 +35,7 @@ FetchContent_MakeAvailable(cclap)
 message(STATUS "Fetching libtins...")
 FetchContent_MakeAvailable(libtins)
 
-if (NPED_BUILD_TESTS)
+if (SPOOFY_BUILD_TESTS)
     include(FetchContent)
     FetchContent_Declare(
         catch2
