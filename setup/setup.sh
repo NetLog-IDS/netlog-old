@@ -1,3 +1,4 @@
+#!/bin/sh
 # ensure libpcap is installed
 package = libpcap
 if [ $1 == "mac" ]; then
