@@ -11,11 +11,11 @@ elif [ $1 = "linux" ]; then
   portage_cmd=$(which emerge) # Gentoo based distro
 
   if [ ! -z $apt_cmd ]; then
-    sudo apt install -y libpcap
+    sudo apt update -y && sudo apt install -y libpcap-dev
   elif [ ! -z $pacman_cmd ]; then
     sudo pacman -Sy libpcap --noconfirm
   elif [ ! -z $yum_cmd ]; then
-    sudo yum -y install libpcap
+    sudo yum update -y && sudo yum -y install libpcap
   elif [ ! -z $zypper_cmd ]; then
     sudo zypper --non-interactive install libpcap
   elif [ ! -z $portage_cmd ]; then
