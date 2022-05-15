@@ -18,6 +18,9 @@ BUILD_FOLDER := build
 
 .PHONY: default setup debug release test
 
+default:
+	$(MAKE) debug
+
 setup:
 ifeq ($(detected_OS), Windows) 
 	cmd /C setup/setup.bat
@@ -28,9 +31,6 @@ endif
 ifeq ($(detected_OS), Darwin)
 	./setup/setup.sh mac
 endif
-
-default:
-	$(MAKE) debug
 
 debug:
 	$(MAKE) setup
