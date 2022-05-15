@@ -1,24 +1,24 @@
 #!/bin/sh
 # ensure libpcap is installed
-package = libpcap
+package=libpcap
 if [ $1 = "mac" ]; then
   brew install libpcap 
 elif [ $1 = "linux" ]; then
-  APT_CMD = $(which apt-get)    # Debian based distro
-  PACMAN_CMD = $(which pacman)  # Arch based distro
-  YUM_CMD = $(which yum)        # Red Hat based distro
-  ZYPPER_CMD = $(which zypper)  # OpenSuse based distro
-  PORTAGE_CMD = $(which emerge) # Gentoo based distro
+  apt_cmd=$(which apt-get)    # Debian based distro
+  pacman_cmd=$(which pacman)  # Arch based distro
+  yum_cmd=$(which yum)        # Red Hat based distro
+  zypper_cmd=$(which zypper)  # OpenSuse based distro
+  portage_cmd=$(which emerge) # Gentoo based distro
 
-  if [ ! -z $APT_CMD ]; then
+  if [ ! -z $apt_cmd ]; then
     apt install -y libpcap
-  elif [ ! -z $PACMAN_CMD ]; then
+  elif [ ! -z $pacman_cmd ]; then
     pacman -Sy libpcap --noconfirm
-  elif [ ! -z $YUM_CMD ]; then
+  elif [ ! -z $yum_cmd ]; then
     yum -y install libpcap
-  elif [ ! -z $ZYPPER_CMD ]; then
+  elif [ ! -z $zypper_cmd ]; then
     zypper --non-interactive install libpcap
-  elif [ ! -z $PORTAGE_CMD ]; then
+  elif [ ! -z $portage_cmd ]; then
     emerge net-libs/libpcap
   else
     echo "Error installing $package. Package manager not supported in setup script, you are on your own! Ending build..."
