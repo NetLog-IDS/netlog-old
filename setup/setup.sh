@@ -1,9 +1,9 @@
 #!/bin/sh
 # ensure libpcap is installed
 package = libpcap
-if [ $1 == "mac" ]; then
+if [ $1 = "mac" ]; then
   brew install libpcap 
-elif [ $1 == "linux" ]; then
+elif [ $1 = "linux" ]; then
   APT_CMD = $(which apt-get)    # Debian based distro
   PACMAN_CMD = $(which pacman)  # Arch based distro
   YUM_CMD = $(which yum)        # Red Hat based distro
