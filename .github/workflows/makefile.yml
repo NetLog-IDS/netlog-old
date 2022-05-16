@@ -12,45 +12,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure build
-      - run: ./configure.sh
-
-      - name: Build application
+    - uses: actions/checkout@v3
+    
+    - name: Configure build
+    - run: ./configure.sh
+      
+    - name: Build application
       run: make release
-
-      - name: Run tests
+      
+    - name: Run tests
       run: make test
-
+  
   windows-build:
-
+  
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure build
-      - run: ./configure.bat
-
-      - name: Build application
+    - uses: actions/checkout@v3
+    
+    - name: Configure build
+    - run: configure.bat
+      
+    - name: Build application
       run: make release
-
-      - name: Run tests
+      
+    - name: Run tests
       run: make test
-
+      
   macos-build:
-
+  
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure build
-      - run: ./configure.sh
-
-      - name: Build application
+    - uses: actions/checkout@v3
+    
+    - name: Configure build
+    - run: ./configure.sh
+      
+    - name: Build application
       run: make release
-
-      - name: Run tests
+      
+    - name: Run tests
       run: make test
