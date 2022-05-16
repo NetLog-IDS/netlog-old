@@ -14,21 +14,21 @@ default:
 	$(MAKE) debug
 
 debug:
-	mkdir build;\
-	cd build;\
-	cmake .. -DCMAKE_BUILD_TYPE=Debug $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS);\
-	cmake --build .;\
+	mkdir build ;\
+	cd build ;\
+	cmake .. -DCMAKE_BUILD_TYPE=Debug $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) ;\
+	cmake --build . ;\
 	echo "Build finished, to run: ./build/bin/spoofy"
 	
 release:
-	mkdir build;\
-	cd build;\
-	cmake .. -DCMAKE_BUILD_TYPE=Release $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS);\
-	cmake --build .;\
-	echo "Build finished, to run: ./build/bin/spoofy";\
+	mkdir build ;\
+	cd build ;\
+	cmake .. -DCMAKE_BUILD_TYPE=Release $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) ;\
+	cmake --build . ;\
+	echo "Build finished, to run: ./build/bin/spoofy"
 
 test:
-	cd build;\
+	cd build ;\
 	ctest --rerun-failed --output-on-failure
 
 clean:
