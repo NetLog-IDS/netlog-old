@@ -14,6 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Configure build
+    - run: ./configure.sh
       
     - name: Build application
       run: make release
@@ -28,6 +30,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Configure build
+    - run: configure.bat
       
     - name: Build application
       run: make release
@@ -42,6 +46,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Configure build
+    - run: ./configure.sh
       
     - name: Build application
       run: make release
