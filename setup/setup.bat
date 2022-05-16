@@ -7,7 +7,6 @@ echo "Trying to install cmake..."
 choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
 echo "Trying to install make..."
 choco install make -y
-refreshenv
 
 :: get winpcap developer pack
 echo "Fetching WinPcap developer pack..."

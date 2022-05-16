@@ -10,4 +10,4 @@ elif [ $unameis = "Linux" ]; then
     platform="linux"
 fi
 
-"$root" ./setup/setup.sh $platform
+"$root" ./setup/setup.sh "$platform"
