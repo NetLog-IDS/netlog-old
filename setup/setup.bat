@@ -10,9 +10,9 @@ choco install make -y
 
 :: get winpcap developer pack
 echo "Fetching WinPcap developer pack..."
-mkdir ..\ext
+mkdir ext
 curl https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip --output ..\ext\WpdPack_4_1_2.zip
-cd ..\ext
+cd ext
 tar -xf WpdPack_4_1_2.zip
 del WpdPack_4_1_2.zip
 echo "Developer pack is now in spoofy\ext\'
