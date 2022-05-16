@@ -1,6 +1,3 @@
-root=$(which sudo)
-root=$(which doas)
-
 platform="unknown"
 unameis=$(uname)
 
@@ -10,4 +7,7 @@ elif [ $unameis = "Linux" ]; then
     platform="linux"
 fi
 
-"$root" ./setup/setup.sh $platform
+root=$(which sudo)
+root=$(which doas)
+
+"${root}" ./setup/setup.sh "$platform"
