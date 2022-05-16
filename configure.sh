@@ -7,7 +7,4 @@ elif [ $unameis = "Linux" ]; then
     platform="linux"
 fi
 
-root=$(which sudo)
-root=$(which doas)
-
-"${root}" ./setup/setup.sh "$platform"
+sudo ./setup/setup.sh $platform
