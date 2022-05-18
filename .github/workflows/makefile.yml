@@ -16,6 +16,9 @@ jobs:
       
       - name: Configure build
         run: ./configure.sh
+
+      - name: Clean
+        run: make clean
         
       - name: Build application
         run: make release
