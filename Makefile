@@ -14,18 +14,18 @@ else
 	RM := rm -rf
 endif
 
-.PHONY: default debug release test clean
+.PHONY: default debug release test clean configure
 
 default:
 	$(MAKE) debug
 
 configure:
+	mkdir build
 ifeq ($(OS), Windows_NT)
 	cmd /C configure.bat
 else
 	./configure.sh
 endif
-	mkdir build
 
 
 debug:
