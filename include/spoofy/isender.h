@@ -1,5 +1,5 @@
-#ifndef _SENDER_H_
-#define _SENDER_H_
+#ifndef _ISENDER_H_
+#define _ISENDER_H_
 
 class ISender {
 public:
@@ -19,4 +19,4 @@ private:
     ISender *sender_;
 };
 
-#endif // _SENDER_H_
+#endif // _ISENDER_H_

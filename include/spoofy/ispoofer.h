@@ -1,5 +1,5 @@
-#ifndef _SPOOFER_H_
-#define _SPOOFER_H_
+#ifndef _ISPOOFER_H_
+#define _ISPOOFER_H_
 
 #include <vector>
 
@@ -23,4 +23,4 @@ private:
     const std::vector<int> &delays;
 };
 
-#endif // _SPOOFER_H_
+#endif // _ISPOOFER_H_
