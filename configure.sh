@@ -2,9 +2,9 @@ platform="unknown"
 unameis=$(uname)
 
 if [ $unameis = "Darwin" ]; then
-    platform="mac"
+    ./setup/setup.sh mac
 elif [ $unameis = "Linux" ]; then
-    platform="linux"
+    sudo ./setup/setup.sh linux
+else
+    echo "Platform unsuported, handle configuration manually."
 fi
-
-sudo ./setup/setup.sh $platform
