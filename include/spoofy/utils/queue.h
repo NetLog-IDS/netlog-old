@@ -5,6 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace spoofy {
+
 /**
  * @class ThreadSafeQueue
  * @brief Wrapper over std::queue, trying to be thread-safe.
@@ -58,5 +60,7 @@ private:
     std::mutex mutex_;
     std::condition_variable condition_var_;
 };
+
+}
 
 #endif // _QUEUE_H_
