@@ -16,7 +16,7 @@ namespace spoofy {
  * */
 PacketSniffer::PacketSniffer(SnifferType st,
                              const char *iface,
-                             const char *capture_filter) { 
+                             const char *capture_filter) : sniffer_type_(st){ 
     setup(st, iface, capture_filter);
 }
 
@@ -38,9 +38,9 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *capture
         } else {
             sniffer_ = std::make_unique<Tins::Sniffer>(iface, config);
         }
-    } catch (Tins::pcap_error &e) {
+    } catch (const Tins::pcap_error &e) {
         throw std::runtime_error(e.what());
-    } catch (std::exception &e) {
+    } catch (const std::exception &e) {
         throw std::runtime_error(e.what());
     }
 }
@@ -52,13 +52,10 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *capture
  * @param[in] running Boolean used to manage running state, and end the capture
  * when needed.
  * */
-bool
-PacketSniffer::callback(Tins::Packet &packet,
-                        ThreadSafeQueue<Tins::Packet> &packetq,
-                        bool &running) { 
+/* bool PacketSniffer::callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running) { 
     packetq.push(packet);
     return running;
-}
+} */
 
 /**
  * @brief Run function. Used to bind values provided via the API to the callback
@@ -67,12 +64,14 @@ PacketSniffer::callback(Tins::Packet &packet,
  * @param[in] running Boolean used to manage running state, and end the capture
  * when needed.
  * */
-void PacketSniffer::run(ThreadSafeQueue<Tins::Packet> &packetq, bool &running) {
+void PacketSniffer::run(ThreadSafeQueue<Tins::Packet> &packetq, std::atomic_bool &running) {
     try {
-        sniffer_->sniff_loop(std::bind(&PacketSniffer::callback, this,
-                                       std::placeholders::_1, std::ref(packetq),
-                                       std::ref(running)));
-    } catch (std::exception &ex) {
+        // sniffer_->sniff_loop(std::bind(&PacketSniffer::callback, std::placeholders::_1, packetq, running));
+        sniffer_->sniff_loop([this, &pq = packetq, &running](const Tins::Packet &packet) -> bool {
+                                 pq.push(packet);
+                                 return running.load();
+                             });
+    } catch (const std::exception &ex) {
         throw std::runtime_error(ex.what());
     }
 }

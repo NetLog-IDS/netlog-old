@@ -1,5 +1,6 @@
 #ifndef _APP_H_
 #define _APP_H_
+#include <memory>
 
 #include <tins/tins.h>
 #include <cclap/cclap.h>
@@ -8,6 +9,8 @@
 
 namespace spoofy {
 
+struct ApplicationContext;
+
 /**
  * @class Application
  * @brief Manages application data and initiates program execution.
@@ -15,6 +18,7 @@ namespace spoofy {
 class Application {
 public:
     Application(int argc, char *argv[]);
+    ~Application();
 
     Application() = delete;
     Application(const Application&) = delete;
@@ -22,13 +26,10 @@ public:
     void operator=(const Application&) = delete;
     void operator=(Application&&) = delete;
 
+    void setup();
     void start();
 private:
-    cclap::ArgParser arg_parser_;
-//    PacketEditor editor_;
-
-    ThreadSafeQueue<Tins::Packet> packetq_;
-    std::vector<Tins::Packet> edited_packets_;
+    std::unique_ptr<ApplicationContext> ctx_;
 };
 
 }

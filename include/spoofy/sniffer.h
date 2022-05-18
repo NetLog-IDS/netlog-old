@@ -1,7 +1,8 @@
-#ifndef _CAPTURE_H_
-#define _CAPTURE_H_
+#ifndef _SNIFFER_H_
+#define _SNIFFER_H_
 
-#include<memory>
+#include <memory>
+#include <atomic>
 
 #include <tins/tins.h>
 
@@ -22,14 +23,13 @@ public:
     PacketSniffer(SnifferType st, const char *iface, const char *capture_filter);
     PacketSniffer() = delete;
 
-    void run(ThreadSafeQueue<Tins::Packet>& packetq, bool &running);
+    void run(ThreadSafeQueue<Tins::Packet>& packetq, std::atomic_bool &running);
 private:
+//    bool callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running);
     void setup(SnifferType st, const char *iface, const char *capture_filter);
-    bool callback(Tins::Packet& packet,
-                  ThreadSafeQueue<Tins::Packet>& packetq,
-                  bool &running);
 
+    SnifferType sniffer_type_;
     std::unique_ptr<Tins::BaseSniffer> sniffer_;
 };
 }
-#endif // _CAPTURE_H_
+#endif // _SNIFFER_H_
