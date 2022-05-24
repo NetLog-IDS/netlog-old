@@ -54,7 +54,7 @@ void Application::start() {
 
         // Start processing packets
         std::thread consumer([&pq = ctx_->packetq_, &edp = ctx_->edited_packets_, &running]() {
-                                 while (running) {
+                                 while (running || !pq.empty()) {
                                      // TODO this provides random results - we need to figure out a way to stop the capture
                                      // from there when all packets have been processed
                                      /* if (!edp.empty() && pq.empty()){
