@@ -4,7 +4,8 @@ endif
 
 
 CMAKE_FLAGS  := -DCMAKE_EXPORT_COMPILE_COMMANDS=1
-SPOOFY_FLAGS := -DSPOOFY_BUILD_TESTS=1
+SPOOFY_FLAGS := -DSPOOFY_BUILD_TESTS=0
+RDKAFKA_FLAGS := -DRDKAFKA_BUILD_STATIC=1
 
 ifeq ($(OS), Windows_NT)
 	LIBTINS_FLAGS := -DLIBTINS_BUILD_TESTS=0 -DLIBTINS_BUILD_SHARED=0 -DPCAP_ROOT_DIR=../ext/WpdPack
@@ -30,14 +31,14 @@ endif
 
 debug:
 	cd build ;\
-	cmake .. -DCMAKE_BUILD_TYPE=Debug $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) ;\
+	cmake .. -DCMAKE_BUILD_TYPE=Debug $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) $(RDKAFKA_FLAGS) ;\
 	cmake --build . ;\
 	echo "Build finished, to run: ./build/bin/spoofy"
 	
 release:
 	$(MK_BUILD_DIR)
 	cd build ;\
-	cmake .. -DCMAKE_BUILD_TYPE=Release $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) ;\
+	cmake .. -DCMAKE_BUILD_TYPE=Release $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) $(RDKAFKA_FLAGS);\
 	cmake --build . ;\
 	echo "Build finished, to run: ./build/bin/spoofy"
 
