@@ -2,7 +2,11 @@
 #define _SENDER_H_
 
 #include <memory>
+#include <string_view>
+
 #include <tins/tins.h>
+// maybe #include <librdkafka/rdkafkacpp.h>
+#include <rdkafkacpp.h>
 
 class SendingStrategy {
 public:
@@ -26,20 +30,6 @@ private:
 };
 
  /** 
-  * @brief Sends packet to Apache Kafka using librdkafka
-  * @code
-  *     auto pkt = Tins::EthernetII(eth.src_addr(), eth.dst_addr()) /
-  *         Tins::IP(ip.src_addr(), ip.dst_addr()) /
-  *         Tins::UDP(udp.sport(), udp.dport());
-  *     SendingContext sc(std::make_unique<KafkaSender>(params);
-  *     sc.send(pkt)
-  * @endcode
- */
-class KafkaSender : public SendingStrategy {
-    virtual void send(Tins::PDU &p);
-};
-
- /** 
   * @brief Sends packets using libtins, on specified interface
   * @code
   *     auto pkt = Tins::EthernetII(eth.src_addr(), eth.dst_addr()) /
@@ -58,6 +48,37 @@ private:
 
     Tins::NetworkInterface interface_;
     Tins::PacketSender packet_sender_;
+};
+
+ /** 
+  * @brief Sends packet to Apache Kafka using librdkafka
+  * @code
+  *     auto pkt = Tins::EthernetII(eth.src_addr(), eth.dst_addr()) /
+  *         Tins::IP(ip.src_addr(), ip.dst_addr()) /
+  *         Tins::UDP(udp.sport(), udp.dport());
+  *     SendingContext sc(std::make_unique<KafkaSender>(params);
+  *     sc.send(pkt)
+  * @endcode
+ */
+class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
+public:
+    void dr_cb(RdKafka::Message &message);
+};
+class KafkaSender : public SendingStrategy {
+public:
+    KafkaSender();
+    ~KafkaSender();
+
+    /* //dunno if these are needed
+    void poll(uint32_t val);
+    void flush(uint32_t val); */
+private:
+    virtual void send(Tins::PDU &pdu);
+    std::string jsonify(Tins::PDU &pdu);
+
+    ExampleDeliveryReportCb ex_dr_cb_;
+    RdKafka::Producer *producer_;
+    std::string brokers_, topic_;
 };
 
 #endif // _SENDER_H_

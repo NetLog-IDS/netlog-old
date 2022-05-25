@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "spoofy/sniffer.h"
+#include "spoofy/sender.h"
 
 namespace spoofy {
 
@@ -55,15 +56,18 @@ void Application::start() {
         // Start processing packets
         std::thread consumer([&pq = ctx_->packetq_, &edp = ctx_->edited_packets_, &running]() {
                                  while (running) {
-                                     // TODO this provides random results - we need to figure out a way to stop the capture
-                                     // from there when all packets have been processed
-                                     /* if (!edp.empty() && pq.empty()){
-                                         running = false;
-                                     } */
-
                                      if (!pq.empty()) {
                                          // processing on the packets here
-                                         edp.push_back(pq.pop());
+                                         Tins::Packet pkt(pq.pop()); // avoid copy
+                                         edp.push_back(pkt); // just to make sure the previous code works 
+                                         // do some packet processing/spoofing here 
+                                         // SPOOF
+                                         // convert to JSON or some format
+                                         // JSONIFY
+                                         // produce the message to kafka here
+                                         // this should be all that needs to be done, the implementation should be hidden away
+                                         Sender s(std::make_unique<KafkaSender>());
+                                         s.send_packet(pkt);
                                      }
                                  } 
                              });
