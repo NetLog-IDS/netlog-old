@@ -11,9 +11,6 @@ void Sender::set_sender(std::unique_ptr<SendingStrategy> sending_strategy) { sen
 // Sending packets over the network
 NetworkSender::NetworkSender(const char *interface) : 
     interface_(interface), packet_sender_(std::move(Tins::PacketSender(interface_))) {}
-void NetworkSender::set_interface(const char* interface) {
-    packet_sender_.default_interface(Tins::NetworkInterface(interface));
-}
 void NetworkSender::send(Tins::PDU &pdu) {
     packet_sender_.send(pdu);
 }
@@ -173,6 +170,6 @@ retry:
 
 }
 
-std::string KafkaSender::jsonify(Tins::PDU &pdu){
+std::string KafkaSender::jsonify(Tins::PDU &pdu) {
     return ""; // dummy for now
 }

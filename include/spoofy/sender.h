@@ -42,7 +42,6 @@ private:
 class NetworkSender : public SendingStrategy {
 public:
     NetworkSender(const char *interface);
-    void set_interface(const char *interface);
 private:
     virtual void send(Tins::PDU &pdu);
 
@@ -56,7 +55,7 @@ private:
   *     auto pkt = Tins::EthernetII(eth.src_addr(), eth.dst_addr()) /
   *         Tins::IP(ip.src_addr(), ip.dst_addr()) /
   *         Tins::UDP(udp.sport(), udp.dport());
-  *     SendingContext sc(std::make_unique<KafkaSender>(params);
+  *     SendingContext sc(std::make_unique<KafkaSender>("Broker Name", "Topic name");
   *     sc.send(pkt)
   * @endcode
  */
