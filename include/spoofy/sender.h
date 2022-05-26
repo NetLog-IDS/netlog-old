@@ -66,12 +66,11 @@ public:
 };
 class KafkaSender : public SendingStrategy {
 public:
-    KafkaSender();
+    // TODO This can take another parameter in the future, representing a output data format we want to send to Kafka,
+    // KafkaSender(const char *brokers, const char *topic, KafkaFormat fmt);
+    // for now we will keep the only output format as JSON, hardcoded in this class, but we might want others as well
+    KafkaSender(const char *brokers, const char *topic);
     ~KafkaSender();
-
-    /* //dunno if these are needed
-    void poll(uint32_t val);
-    void flush(uint32_t val); */
 private:
     virtual void send(Tins::PDU &pdu);
     std::string jsonify(Tins::PDU &pdu);

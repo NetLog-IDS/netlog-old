@@ -30,7 +30,7 @@ void ExampleDeliveryReportCb::dr_cb(RdKafka::Message &message) {
             << message.offset() << std::endl;
 }
 
-KafkaSender::KafkaSender() : brokers_(""), topic_("") {
+KafkaSender::KafkaSender(const char *brokers, const char *topic) : brokers_(brokers), topic_(topic) {
     /*
    * Create configuration object
    */
@@ -82,6 +82,18 @@ KafkaSender::KafkaSender() : brokers_(""), topic_("") {
 }
 
 KafkaSender::~KafkaSender() {
+    /* Wait for final messages to be delivered or fail.
+    * flush() is an abstraction over poll() which
+    * waits for all messages to be delivered. 
+    */
+    std::cerr << "% Flushing final messages..." << std::endl;
+    producer_->flush(10 * 1000 /* wait for max 10 seconds */);
+
+    int outq_len = producer_->outq_len();
+    if (outq_len > 0) {
+        std::cerr << "% " << outq_len << " message(s) were not delivered" << std::endl;
+    }
+
     delete producer_;
 }
 
@@ -89,7 +101,7 @@ KafkaSender::~KafkaSender() {
 // i think this should send the json string
 void KafkaSender::send(Tins::PDU &pdu) {
     std::string packet = jsonify(pdu);
-    // the example - HACK this needs to be modified to fit our requirements 
+
     /*
      * Send/Produce message.
      * This is an asynchronous call, on success it will only
@@ -159,15 +171,6 @@ retry:
      * you register). */
     producer_->poll(0);
 
-  /* Wait for final messages to be delivered or fail.
-   * flush() is an abstraction over poll() which
-   * waits for all messages to be delivered. */
-  std::cerr << "% Flushing final messages..." << std::endl;
-  producer_->flush(10 * 1000 /* wait for max 10 seconds */);
-
-  if (producer_->outq_len() > 0)
-    std::cerr << "% " << producer_->outq_len()
-              << " message(s) were not delivered" << std::endl;
 }
 
 std::string KafkaSender::jsonify(Tins::PDU &pdu){
