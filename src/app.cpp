@@ -14,20 +14,23 @@
 namespace spoofy {
 
 struct ApplicationContext {
-    ApplicationContext(int argc, char *argv[]) : arg_parser_(argc, argv) {}
+    ApplicationContext(int argc, char *argv[]) : arg_parser(argc, argv) {}
 
     struct CliArgs {
-        std::string interface_name;
         SnifferType sniffer_type;
         std::string capture_filter;
-        std::optional<std::string> sending_interface;
+        std::string interface_name;
         std::optional<std::string> broker, topic;
-    } args_;
+        std::optional<std::string> network_sending_interface;
+    } args;
 
+    // this might cause problems, because it is scoped for the lifetime of the app.
+    // might need to be local to the lambda, but initialization is cleaner this way
+    Sender sender;
 
-    cclap::ArgParser arg_parser_;
-    ThreadSafeQueue<Tins::Packet> packetq_;
-    std::vector<Tins::Packet> edited_packets_;
+    cclap::ArgParser arg_parser;
+    ThreadSafeQueue<Tins::Packet> packetq;
+    std::vector<Tins::Packet> edited_packets;
 };
 
 /**
@@ -50,29 +53,30 @@ void Application::start() {
 
     try {
         // Start capturing packets and store them in a queue
-        std::thread sniffer([&pq = ctx_->packetq_, &st = ctx_->args_.sniffer_type, &running,
-                             &iface = ctx_->args_.interface_name, &filter = ctx_->args_.capture_filter]() { 
-                                 PacketSniffer ps(st, iface.data(), filter.data());
-                                 ps.run(pq, running);
-                                 running.store(false); // stop running after sniffing all packets
-                             });
+        std::thread sniffer(
+                [this, &running]() {
+                    PacketSniffer ps(ctx_->args.sniffer_type, ctx_->args.interface_name.data(), ctx_->args.capture_filter.data());
+                    // PacketSniffer ps(st, iface.data(), filter.data());
+                    ps.run(ctx_->packetq, running);
+                    running.store(false); // stop running after sniffing all packets
+                });
 
         // Consume the packets stored in the queue and send them to Apache Kafka
-        std::thread kafka_producer([&pq = ctx_->packetq_, &edp = ctx_->edited_packets_, &running]() {
-                                 Sender s(std::make_unique<KafkaSender>("broker_name", "topic_name"));
-                                 while (running || !pq.empty()) {
-                                     if (!pq.empty()) {
-                                         Tins::Packet pkt(pq.pop()); 
-                                         edp.push_back(pkt); //push them into a container just in case
+        std::thread kafka_producer(
+                 [this, &running]() {
+                    while (running || !ctx_->packetq.empty()) {
+                        if (!ctx_->packetq.empty()) {
+                            Tins::Packet pkt(ctx_->packetq.pop()); 
+                            ctx_->edited_packets.push_back(pkt); //push them into a container just in case
 
-                                         s.send_packet(pkt);
-                                     }
-                                 } 
-                             });
+                            ctx_->sender.send_packet(pkt);
+                        }
+                    } 
+                });
 
-        if (ctx_->args_.sniffer_type == SnifferType::Sniffer) {
+        if (ctx_->args.sniffer_type == SnifferType::Sniffer) {
             // Listen for user input to stop live capture
-            std::cout << "[INFO] Live capture started on interface: " << ctx_->args_.interface_name << std::endl;
+            std::cout << "[INFO] Live capture started on interface: " << ctx_->args.interface_name << std::endl;
             std::thread wait_for_key([&running]() {
                                          std::cout << "Press key to stop capture";
                                          std::cin.get();
@@ -88,22 +92,22 @@ void Application::start() {
         return;
     }
 
-    if (ctx_->args_.sniffer_type == SnifferType::FileSniffer) {
-        std::cout << "[INFO] Read packets from capture file: " << ctx_->args_.interface_name << std::endl; 
+    if (ctx_->args.sniffer_type == SnifferType::FileSniffer) {
+        std::cout << "[INFO] Read packets from capture file: " << ctx_->args.interface_name << std::endl; 
     }
 
-    std::cout << "[INFO] Work is done! Processed "<< ctx_->edited_packets_.size() << " packets.\n" << "Press any key to exit...\n";
+    std::cout << "[INFO] Work is done! Processed "<< ctx_->edited_packets.size() << " packets.\n" << "Press any key to exit...\n";
     std::cin.get();
 }
 
 void Application::setup() {
     // get sniffer type (read from file or live capture)
-    ctx_->args_.sniffer_type = ctx_->arg_parser_.find_switch("l") ||
-        ctx_->arg_parser_.find_switch("live") ? SnifferType::Sniffer : SnifferType::FileSniffer;
+    ctx_->args.sniffer_type = ctx_->arg_parser.find_switch("l") ||
+        ctx_->arg_parser.find_switch("live") ? SnifferType::Sniffer : SnifferType::FileSniffer;
 
     // get specified interface name, or default network interface
-    const auto &interface_found= ctx_->arg_parser_.find_flag("i");
-    ctx_->args_.interface_name = [&interface_found] {
+    const auto &interface_found= ctx_->arg_parser.find_flag("i");
+    ctx_->args.interface_name = [&interface_found] {
         if (!interface_found) {
             Tins::NetworkInterface ni = Tins::NetworkInterface::default_interface();
             const std::string interface_name(ni.name());
@@ -114,8 +118,8 @@ void Application::setup() {
     }();
 
     // get capture flags or empty string if not specified
-    const auto &filter_found = ctx_->arg_parser_.find_flag("f");
-    ctx_->args_.capture_filter = [&filter_found] {
+    const auto &filter_found = ctx_->arg_parser.find_flag("f");
+    ctx_->args.capture_filter = [&filter_found] {
         std::string res = "";
         if (!filter_found) {
             return res;
@@ -129,50 +133,64 @@ void Application::setup() {
         return res;
     }();
 
-    const auto &sender_found = ctx_->arg_parser_.find_flag("sender");
-    if (!sender_found) {
+    // get sender command line arguments
+    const auto &senderfound = ctx_->arg_parser.find_flag("sender");
+    if (!senderfound) {
         throw std::runtime_error("[ERROR - CLI args] Sender not specified.");
     }
 
-    ctx_->args_.sending_interface = std::invoke([this, &sender_found]() -> std::optional<std::string> {
-        if (!(sender_found.value()[0] == "network")) { 
-            return std::nullopt;
-        }
+    // set network sending interface optional - used in network sender
+    ctx_->args.network_sending_interface = 
+        std::invoke([this, &senderfound]() -> std::optional<std::string> {
+                        if (!(senderfound.value()[0] == "network")) { 
+                            return std::nullopt;
+                        }
 
-        const auto &sinterface_found = ctx_->arg_parser_.find_flag("network-sending-interface");
-        if(!sinterface_found) {
-            return std::nullopt; // don't throw, if no interface is provided we will use the one from the capture
-        }
-        return std::make_optional<std::string>(sinterface_found.value()[0]);
-    });
+                        const auto &sinterface_found = ctx_->arg_parser.find_flag("network-sending-interface");
+                        if(!sinterface_found) {
+                            return std::nullopt; // don't throw, if no interface is provided we will use the one from the capture
+                        }
+                        return std::make_optional<std::string>(sinterface_found.value()[0]);
+                    });
 
-    ctx_->args_.broker = std::invoke([this, &sender_found]() -> std::optional<std::string> {
-        if (!(sender_found.value()[0] == "kafka")) { 
-            return std::nullopt;
-        }
+    // set broker optional - used for kafka sender
+    ctx_->args.broker =
+        std::invoke([this, &senderfound]() -> std::optional<std::string> {
+                        if (!(senderfound.value()[0] == "kafka")) { 
+                            return std::nullopt;
+                        }
 
-        const auto &broker_found = ctx_->arg_parser_.find_flag("broker");
-        if(!broker_found) {
-            throw std::runtime_error("[ERROR - CLI args] Kafka broker not specified");
-        }
-        return std::make_optional<std::string>(broker_found.value()[0]);
-        /* if(!sender_found) {
-            return std::nullopt;
-        }
-        return std::make_optional<std::string>(sender_found.value()[0]); */
-    });
+                        const auto &broker_found = ctx_->arg_parser.find_flag("broker");
+                        if(!broker_found) {
+                            throw std::runtime_error("[ERROR - CLI args] Kafka broker not specified");
+                        }
+                        return std::make_optional<std::string>(broker_found.value()[0]);
+                    });
 
-    ctx_->args_.topic = std::invoke([this]() -> std::optional<std::string> {
-        if (!ctx_->args_.broker) {
-            return std::nullopt;
+    // set topic optional - used for kafka sender
+    ctx_->args.topic =
+        std::invoke([this]() -> std::optional<std::string> {
+                        if (!ctx_->args.broker) {
+                            return std::nullopt;
+                        }
+
+                        const auto &topic_found = ctx_->arg_parser.find_flag("topic");
+                        if (!topic_found) {
+                            throw std::runtime_error("[ERROR - CLI args] Kafka topic not specified");
+                        }
+                        return std::make_optional<std::string>(topic_found.value()[0]);
+                    });
+
+    // set sender based on present optional values
+    if (ctx_->args.broker) {
+        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topic.value().c_str()));
+    } else {
+        if (ctx_->args.network_sending_interface) {
+            ctx_->sender.set_sender(std::make_unique<NetworkSender>(ctx_->args.network_sending_interface.value().c_str()));
+        } else {
+            ctx_->sender.set_sender(std::make_unique<NetworkSender>(""));
         }
-        
-        const auto &topic_found = ctx_->arg_parser_.find_flag("topic");
-        if (!topic_found) {
-            throw std::runtime_error("[ERROR - CLI args] Kafka topic not specified");
-        }
-        return std::make_optional<std::string>(topic_found.value()[0]);
-    });
+    }
 }
 
 }
