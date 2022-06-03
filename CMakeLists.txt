@@ -26,14 +26,16 @@ FetchContent_Declare(
     GIT_REPOSITORY    https://github.com/mfontanini/libtins.git
     )
 FetchContent_Declare(
-    catch2
-    GIT_REPOSITORY    https://github.com/catchorg/Catch2.git
-    GIT_TAG        v3.0.0-preview4
+    librdkafka
+    GIT_REPOSITORY    https://github.com/edenhill/librdkafka.git
     )
+
 message(STATUS "Fetching cclap...")
 FetchContent_MakeAvailable(cclap)
 message(STATUS "Fetching libtins...")
 FetchContent_MakeAvailable(libtins)
+message(STATUS "Fetching librdkafka...")
+FetchContent_MakeAvailable(librdkafka)
 
 if (SPOOFY_BUILD_TESTS)
     include(FetchContent)

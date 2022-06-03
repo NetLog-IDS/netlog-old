@@ -1,4 +1,5 @@
 add_executable(spoofy 
+        utils/rand.cpp
         sniffer.cpp
         spoofer.cpp
         sender.cpp
@@ -16,12 +17,28 @@ set_target_properties(spoofy
 find_package(Threads REQUIRED)
 
 if(WIN32)
-    target_link_libraries(spoofy PRIVATE cclap PRIVATE tins PRIVATE Threads::Threads PRIVATE Ws2_32 PRIVATE Iphlpapi PRIVATE ${PCAP_ROOT_DIR}/Lib/wpcap.lib)
-    target_include_directories(spoofy PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include ${libtins_SOURCE_DIR}/include ${PCAP_ROOT_DIR}/Include)
+    target_link_libraries(spoofy 
+        PRIVATE cclap 
+        PRIVATE tins 
+        PRIVATE rdkafka++ 
+        PRIVATE Threads::Threads 
+        PRIVATE Ws2_32 PRIVATE Iphlpapi PRIVATE ${PCAP_ROOT_DIR}/Lib/wpcap.lib)
+    target_include_directories(spoofy 
+        PRIVATE ${CMAKE_SOURCE_DIR}/include 
+        PRIVATE ${cclap_SOURCE_DIR}/include 
+        PRIVATE ${libtins_SOURCE_DIR}/include 
+        PRIVATE ${PCAP_ROOT_DIR}/Include)
     target_compile_definitions(spoofy PRIVATE WIN32 PRIVATE TINS_STATIC)
 else()
-    target_link_libraries(spoofy PRIVATE cclap PRIVATE tins PRIVATE Threads::Threads)
-    target_include_directories(spoofy PRIVATE ${CMAKE_SOURCE_DIR}/include PRIVATE ${cclap_SOURCE_DIR}/include ${libtins_SOURCE_DIR}/include)
+    target_link_libraries(spoofy 
+        PRIVATE cclap 
+        PRIVATE tins 
+        PRIVATE rdkafka++ 
+        PRIVATE Threads::Threads)
+    target_include_directories(spoofy 
+        PRIVATE ${CMAKE_SOURCE_DIR}/include 
+        PRIVATE ${cclap_SOURCE_DIR}/include 
+        PRIVATE ${libtins_SOURCE_DIR}/include)
 endif()
 
 
