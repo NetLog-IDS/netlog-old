@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+namespace spoofy {
+
 // Context
 Sender::Sender(std::unique_ptr<SendingStrategy> sender) : sender_(std::move(sender)) {}
 Sender::~Sender() = default;
@@ -172,4 +174,6 @@ retry:
 
 std::string KafkaSender::jsonify(Tins::PDU &pdu) {
     return ""; // dummy for now
+}
+
 }

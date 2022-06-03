@@ -10,6 +10,7 @@
 
 #include "spoofy/sniffer.h"
 #include "spoofy/sender.h"
+#include "spoofy/utils/rand.h"
 
 namespace spoofy {
 
@@ -181,7 +182,7 @@ void Application::setup() {
                         return std::make_optional<std::string>(topic_found.value()[0]);
                     });
 
-    // set sender based on present optional values
+    // set sender based on previously set optional cli values
     if (ctx_->args.broker) {
         ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topic.value().c_str()));
     } else {

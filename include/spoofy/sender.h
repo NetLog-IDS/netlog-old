@@ -8,6 +8,8 @@
 // maybe #include <librdkafka/rdkafkacpp.h>
 #include <rdkafkacpp.h>
 
+namespace spoofy {
+
 class SendingStrategy {
 public:
     virtual ~SendingStrategy() {}  // implement this in cpp file or all hell breaks loose
@@ -79,4 +81,5 @@ private:
     std::string brokers_, topic_;
 };
 
+}
 #endif // _SENDER_H_
