@@ -7,6 +7,7 @@
 #include <thread>
 #include <iostream>
 #include <optional>
+#include <vector>
 
 #include "spoofy/sniffer.h"
 #include "spoofy/sender.h"
@@ -21,7 +22,8 @@ struct ApplicationContext {
         SnifferType sniffer_type;
         std::string capture_filter;
         std::string interface_name;
-        std::optional<std::string> broker, topic;
+        std::optional<std::string> broker;
+        std::optional<std::array<std::string, 2>> topics;
         std::optional<std::string> network_sending_interface;
     } args;
 
@@ -169,8 +171,8 @@ void Application::setup() {
                     });
 
     // set topic optional - used for kafka sender
-    ctx_->args.topic =
-        std::invoke([this]() -> std::optional<std::string> {
+    ctx_->args.topics =
+        std::invoke([this]() -> std::optional<std::array<std::string, 2>> {
                         if (!ctx_->args.broker) {
                             return std::nullopt;
                         }
@@ -179,12 +181,16 @@ void Application::setup() {
                         if (!topic_found) {
                             throw std::runtime_error("[ERROR - CLI args] Kafka topic not specified");
                         }
-                        return std::make_optional<std::string>(topic_found.value()[0]);
+                        std::optional<std::array<std::string, 2>> res = std::make_optional<std::array<std::string, 2>>();
+                        res.value()[0] = topic_found.value()[0];
+                        res.value()[1] = topic_found.value()[1];
+                        return res;
                     });
+    std::cout << "found topics" << ctx_->args.topics.value()[0] << ctx_->args.topics.value()[1];
 
     // set sender based on previously set optional cli values
     if (ctx_->args.broker) {
-        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topic.value().c_str()));
+        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topics.value()));
     } else {
         if (ctx_->args.network_sending_interface) {
             ctx_->sender.set_sender(std::make_unique<NetworkSender>(ctx_->args.network_sending_interface.value().c_str()));

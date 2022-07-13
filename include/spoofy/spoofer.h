@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iterator>
+#include <memory>
 
 #include "spoofy/utils/rand.h"
 

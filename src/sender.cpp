@@ -29,7 +29,7 @@ void ExampleDeliveryReportCb::dr_cb(RdKafka::Message &message) {
             << message.offset() << std::endl;
 }
 
-KafkaSender::KafkaSender(const char *brokers, const char *topic) : brokers_(brokers), topic_(topic) {
+KafkaSender::KafkaSender(const char *brokers, std::array<std::string, 2> topics) : brokers_(brokers), topics_(topics) {
     /*
    * Create configuration object
    */
@@ -70,8 +70,13 @@ KafkaSender::KafkaSender(const char *brokers, const char *topic) : brokers_(brok
     /*
    * Create producer instance.
    */
-    producer_ = RdKafka::Producer::create(conf, errstr);
-    if (!producer_) {
+    producer1_ = RdKafka::Producer::create(conf, errstr);
+    if (!producer1_) {
+        std::cerr << "Failed to create producer: " << errstr << std::endl;
+        exit(1);
+    }
+    producer2_ = RdKafka::Producer::create(conf, errstr);
+    if (!producer2_) {
         std::cerr << "Failed to create producer: " << errstr << std::endl;
         exit(1);
     }
@@ -86,14 +91,21 @@ KafkaSender::~KafkaSender() {
     * waits for all messages to be delivered. 
     */
     std::cerr << "% Flushing final messages..." << std::endl;
-    producer_->flush(10 * 1000 /* wait for max 10 seconds */);
+    producer1_->flush(10 * 1000 /* wait for max 10 seconds */);
+    producer2_->flush(10 * 1000 /* wait for max 10 seconds */);
 
-    int outq_len = producer_->outq_len();
+    int outq_len = producer1_->outq_len();
     if (outq_len > 0) {
         std::cerr << "% " << outq_len << " message(s) were not delivered" << std::endl;
     }
 
-    delete producer_;
+    int outq_len1 = producer2_->outq_len();
+    if (outq_len1 > 0) {
+        std::cerr << "% " << outq_len1 << " message(s) were not delivered" << std::endl;
+    }
+
+    delete producer1_;
+    delete producer2_;
 }
 
 // Sending packets to Apache Kafka
@@ -112,9 +124,9 @@ void KafkaSender::send(Tins::PDU &pdu) {
      * has been delivered (or failed permanently after retries).
      */
 retry:
-    RdKafka::ErrorCode err = producer_->produce(
+    RdKafka::ErrorCode err = producer1_->produce(
             /* Topic name */
-            topic_,
+            topics_[0],
             /* Any Partition: the builtin partitioner will be
          * used to assign the message to a topic based
          * on the message key, or random partition if
@@ -135,7 +147,7 @@ retry:
             NULL);
 
     if (err != RdKafka::ERR_NO_ERROR) {
-        std::cerr << "% Failed to produce to topic " << topic_ << ": "
+        std::cerr << "% Failed to produce to topic " << topics_[0] << ": "
             << RdKafka::err2str(err) << std::endl;
 
         if (err == RdKafka::ERR__QUEUE_FULL) {
@@ -149,13 +161,60 @@ retry:
          * The internal queue is limited by the
          * configuration property
          * queue.buffering.max.messages */
-            producer_->poll(1000 /*block for max 1000ms*/);
+            producer1_->poll(1000 /*block for max 1000ms*/);
             goto retry;
         }
 
     } else {
         std::cerr << "% Enqueued message (" << packet.size() << " bytes) "
-            << "for topic " << topic_ << std::endl;
+            << "for topic " << topics_[0] << std::endl;
+    }
+
+retry2:
+    RdKafka::ErrorCode err2 = producer2_->produce(
+            /* Topic name */
+            topics_[1],
+            /* Any Partition: the builtin partitioner will be
+         * used to assign the message to a topic based
+         * on the message key, or random partition if
+         * the key is not set. */
+            RdKafka::Topic::PARTITION_UA,
+            /* Make a copy of the value */
+            RdKafka::Producer::RK_MSG_COPY /* Copy payload */,
+            /* Value */
+            const_cast<char *>(packet.c_str()), packet.size(),
+            /* Key */
+            NULL, 0,
+            /* Timestamp (defaults to current time) */
+            0,
+            /* Message headers, if any */
+            NULL,
+            /* Per-message opaque value passed to
+         * delivery report */
+            NULL);
+
+    if (err2 != RdKafka::ERR_NO_ERROR) {
+        std::cerr << "% Failed to produce to topic " << topics_[1] << ": "
+            << RdKafka::err2str(err) << std::endl;
+
+        if (err2 == RdKafka::ERR__QUEUE_FULL) {
+            /* If the internal queue is full, wait for
+         * messages to be delivered and then retry.
+         * The internal queue represents both
+         * messages to be sent and messages that have
+         * been sent or failed, awaiting their
+         * delivery report callback to be called.
+         *
+         * The internal queue is limited by the
+         * configuration property
+         * queue.buffering.max.messages */
+            producer2_->poll(1000 /*block for max 1000ms*/);
+            goto retry2;
+        }
+
+    } else {
+        std::cerr << "% Enqueued message (" << packet.size() << " bytes) "
+            << "for topic " << topics_[1] << std::endl;
     }
 
     /* A producer application should continually serve
@@ -168,7 +227,8 @@ retry:
      * to make sure previously produced messages have their
      * delivery report callback served (and any other callbacks
      * you register). */
-    producer_->poll(0);
+    producer1_->poll(0);
+    producer2_->poll(0);
 
 }
 

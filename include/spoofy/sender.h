@@ -70,15 +70,16 @@ public:
     // TODO This can take another parameter in the future, representing a output data format we want to send to Kafka,
     // KafkaSender(const char *brokers, const char *topic, KafkaFormat fmt);
     // for now we will keep the only output format as JSON, hardcoded in this class, but we might want others as well
-    KafkaSender(const char *brokers, const char *topic);
+    KafkaSender(const char *brokers, std::array<std::string, 2> topics);
     ~KafkaSender();
 private:
     virtual void send(Tins::PDU &pdu);
     std::string jsonify(Tins::PDU &pdu);
 
     ExampleDeliveryReportCb ex_dr_cb_;
-    RdKafka::Producer *producer_;
-    std::string brokers_, topic_;
+    RdKafka::Producer *producer1_, *producer2_;
+    std::string brokers_;
+    std::array<std::string, 2> topics_;
 };
 
 }
