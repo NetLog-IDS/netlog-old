@@ -26,7 +26,7 @@ private:
     std::unique_ptr<SpoofingStrategy> spoofer_;
 };
 
-// TODO - make inheritance hierarchy for this class to contain all other spoofers
+// Base class for a spoofer that adds delay to the packet
 class DelaySpoofer : public SpoofingStrategy {
 public:
     DelaySpoofer(std::vector<std::string_view> delays);
