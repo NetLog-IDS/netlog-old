@@ -18,6 +18,7 @@ namespace spoofy {
 struct ApplicationContext {
     ApplicationContext(int argc, char *argv[]) : arg_parser(argc, argv) {}
 
+    cclap::ArgParser arg_parser;
     struct CliArgs {
         SnifferType sniffer_type;
         std::string capture_filter;
@@ -27,14 +28,24 @@ struct ApplicationContext {
         std::optional<std::string> network_sending_interface;
     } args;
 
-    // this might cause problems, because it is scoped for the lifetime of the app.
-    // might need to be local to the lambda, but initialization is cleaner this way
-    Sender sender;
-
-    cclap::ArgParser arg_parser;
     ThreadSafeQueue<Tins::Packet> packetq;
     std::vector<Tins::Packet> edited_packets;
 };
+
+// send the network packet with the designated sender, depending on provided cmdline arguments
+static void send_packet(ApplicationContext *ctx, Tins::Packet& pkt) {
+    Sender s;
+    if(ctx->args.broker) {
+        s.set_sender(std::make_unique<KafkaSender>(ctx->args.broker.value().c_str(), ctx->args.topics.value()));
+    } else {
+        if (ctx->args.network_sending_interface) {
+            s.set_sender(std::make_unique<NetworkSender>(ctx->args.network_sending_interface.value().c_str()));
+        } else {
+            s.set_sender(std::make_unique<NetworkSender>(""));
+        }
+    }
+    s.send_packet(pkt);
+}
 
 /**
  * @brief Class constructor.
@@ -72,7 +83,7 @@ void Application::start() {
                             Tins::Packet pkt(ctx_->packetq.pop()); 
                             ctx_->edited_packets.push_back(pkt); //push them into a container just in case
 
-                            ctx_->sender.send_packet(pkt);
+                            send_packet(ctx_.get(), pkt);
                         }
                     } 
                 });
@@ -188,16 +199,16 @@ void Application::setup() {
                     });
     std::cout << "found topics" << ctx_->args.topics.value()[0] << ctx_->args.topics.value()[1];
 
-    // set sender based on previously set optional cli values
-    if (ctx_->args.broker) {
-        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topics.value()));
-    } else {
-        if (ctx_->args.network_sending_interface) {
-            ctx_->sender.set_sender(std::make_unique<NetworkSender>(ctx_->args.network_sending_interface.value().c_str()));
-        } else {
-            ctx_->sender.set_sender(std::make_unique<NetworkSender>(""));
-        }
-    }
+//    // set sender based on previously set optional cli values
+//    if (ctx_->args.broker) {
+//        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topics.value()));
+//    } else {
+//        if (ctx_->args.network_sending_interface) {
+//            ctx_->sender.set_sender(std::make_unique<NetworkSender>(ctx_->args.network_sending_interface.value().c_str()));
+//        } else {
+//            ctx_->sender.set_sender(std::make_unique<NetworkSender>(""));
+//        }
+//    }
 }
 
 }
