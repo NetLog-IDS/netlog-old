@@ -20,6 +20,40 @@ sudo ./netlog -i INTERFACE -f FILTER --live --sender kafka --broker BROKER_NAME 
 sudo ./netlog -i wlp3s0 --live --sender kafka --broker localhost:9092 --topic network-traffic 
 ```
 
+Testing the streaming functionality is as simple as:
+
+- Setup ksqldb
+
+```bash
+git clone https://github.com/Zenika/ids-ksql.git
+cd ids-ksql
+docker-compose up -d
+```
+
+- Create topic
+
+```bash
+docker-compose exec kafka kafka-topics --zookeeper zookeeper:2181 --create --topic network-traffic --partitions 1 --replication-factor 1
+```
+
+- Connect to ksql-cli
+
+```bash
+docker-compose exec ksql-cli ksql http://ksql-server:8088
+```
+
+- List all data in created topic
+
+```bash
+ksql> print 'network-traffic';
+```
+
+- Start the tool and view the network packets being sent in real time
+
+```bash
+sudo ./netlog -i wlp3s0 --live --sender kafka --broker localhost:9092 --topic network-traffic 
+```
+
 ### Streaming data using libtins PacketSender (work in progress)
 
 ```bash
