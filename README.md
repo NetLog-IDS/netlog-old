@@ -109,3 +109,9 @@ installing it, follow the steps below:
 - Install WinPcap or Npcap (Npcap is recommended)
 - Get [WinPcap developer pack](https://www.winpcap.org/devel.htm) and place it in the `spoofy\ext` folder.
 - Run make, and pray.
+
+## TODOS
+
+- [ ] Improve Network sender configurability (currently hard-coded as a proof of concept)
+- [ ] Improve packet representation accuracy (protocols)
+- [ ] Improve or remove spoofer implementation 
