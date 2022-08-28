@@ -48,7 +48,6 @@ private:
         const Tins::UDP* udp;
         const Tins::RawPDU *raw;
     } packet_adapter_;
-    uint32_t packet_num_;
     std::unique_ptr<JsonWriter> writer_;
 
     void add_timestamp();

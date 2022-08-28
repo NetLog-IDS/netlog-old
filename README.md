@@ -1,6 +1,32 @@
-# spoofy - network packet spoofer
+# netlog - network traffic logger
 
-Spoofs and forwards network packets.
+A network packet logger written in C++ 17.
+
+## Features
+
+- capture network packets
+- convert them to json strings
+- stream network packet data in real time to
+    - apache kafka (ksqldb) via librdkafka
+    - network location via libtins packet sender
+
+## Usage
+
+### Streaming network packets to Apache kafka
+
+```bash
+sudo ./netlog -i INTERFACE -f FILTER --live --sender kafka --broker BROKER_NAME --topic TOPIC_NAME 
+# Example
+sudo ./netlog -i wlp3s0 --live --sender kafka --broker localhost:9092 --topic network-traffic 
+```
+
+### Streaming data using libtins PacketSender (work in progress)
+
+```bash
+sudo ./netlog -i INTERFACE -f FILTER --live --sender network
+# Example
+sudo ./netlog -i wlp3s0 --live --sender network
+```
 
 ## Dependencies
 
@@ -10,7 +36,7 @@ Spoofs and forwards network packets.
 - [catch2](https://github.com/catchorg/Catch2)
 - [cclap](https://github.com/adriancostin6/cclap)
 
-## How-To
+## How-to
 
 ### Setup
 
@@ -21,12 +47,11 @@ Covered ones are: Windows, MacOS, Linux (may fail depending on your package mana
 
 ### Building the project
 
-
 #### Linux, MacOs, other *nix based systems
 
 ```bash 
-$ git clone https://github.com/adriancostin6/spoofy.git
-$ cd spoofy
+$ git clone https://github.com/adriancostin6/netlog.git
+$ cd netlog
 $ ./configure.sh 
 $ make
 ```
@@ -38,8 +63,8 @@ The configuration script tries to provide these using the chocolatey package man
 WinPcap and fetching the development pack automatically.
 
 ```bash 
-$ git clone https://github.com/adriancostin6/spoofy.git
-$ cd spoofy
+$ git clone https://github.com/adriancostin6/netlog.git
+$ cd netlog
 $ configure.bat 
 $ make
 ```
@@ -50,9 +75,3 @@ installing it, follow the steps below:
 - Install WinPcap or Npcap (Npcap is recommended)
 - Get [WinPcap developer pack](https://www.winpcap.org/devel.htm) and place it in the `spoofy\ext` folder.
 - Run make, and pray.
-
-### Usage
-
-```bash
-# ./spoofy -i INTERFACE -f FILTER
-```
