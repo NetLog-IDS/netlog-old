@@ -5,8 +5,6 @@
 
 namespace spoofy {
 
-    //should consider doing #include "cclap/types.h"
-    //to be able to use cclap::ArgVector instead of this abomination
 DelaySpoofer::DelaySpoofer(std::vector<std::string_view> delays) {
     for (std::string_view delay: delays) {
         uint32_t d{};

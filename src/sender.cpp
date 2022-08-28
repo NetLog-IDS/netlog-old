@@ -7,10 +7,9 @@
 namespace spoofy {
 
 // Context
-// unique pointers might make the sender not work properly
 Sender::Sender(std::unique_ptr<SendingStrategy> sender) : sender_(std::move(sender)) {}
 Sender::~Sender() = default;
-void Sender::send_packet(Tins::Packet &p) { sender_->send(p); } // might not work as expected
+void Sender::send_packet(Tins::Packet &p) { sender_->send(p); }
 void Sender::set_sender(std::unique_ptr<SendingStrategy> sending_strategy) { sender_ = std::move(sending_strategy); }
 
 // Sending packets over the network
@@ -50,7 +49,7 @@ KafkaSender::KafkaSender(const char *brokers, std::array<std::string, 2> topics)
         exit(1);
     }
 
-    // dunno if these are needed 
+    // NOTE: are these needed?
     /* signal(SIGINT, sigterm);
   signal(SIGTERM, sigterm); */
 

@@ -1,5 +1,3 @@
-// TODO :Refactor helpers 
-// We now have a PDU local object we can manipulate and take the info from it
 #include "spoofy/jsonbuilder.h"
 #include <algorithm>
 #include <memory>
