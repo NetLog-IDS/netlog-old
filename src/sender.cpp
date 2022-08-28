@@ -1,5 +1,7 @@
 #include "spoofy/sender.h"
 
+#include "spoofy/jsonbuilder.h"
+
 #include <iostream>
 
 namespace spoofy {
@@ -8,14 +10,14 @@ namespace spoofy {
 // unique pointers might make the sender not work properly
 Sender::Sender(std::unique_ptr<SendingStrategy> sender) : sender_(std::move(sender)) {}
 Sender::~Sender() = default;
-void Sender::send_packet(Tins::Packet &p) { sender_->send(*p.pdu()); } // might not work as expected
+void Sender::send_packet(Tins::Packet &p) { sender_->send(p); } // might not work as expected
 void Sender::set_sender(std::unique_ptr<SendingStrategy> sending_strategy) { sender_ = std::move(sending_strategy); }
 
 // Sending packets over the network
 NetworkSender::NetworkSender(const char *interface) : 
     interface_(interface), packet_sender_(std::move(Tins::PacketSender(interface_))) {}
-void NetworkSender::send(Tins::PDU &pdu) {
-    packet_sender_.send(pdu);
+void NetworkSender::send(Tins::Packet &pdu) {
+    packet_sender_.send(*pdu.pdu());
 }
 
 void ExampleDeliveryReportCb::dr_cb(RdKafka::Message &message) {
@@ -111,8 +113,9 @@ KafkaSender::~KafkaSender() {
 
 // Sending packets to Apache Kafka
 // i think this should send the json string
-void KafkaSender::send(Tins::PDU &pdu) {
+void KafkaSender::send(Tins::Packet &pdu) {
     std::string packet = jsonify(pdu);
+    std::cout << packet << "\n";
 
     /*
      * Send/Produce message.
@@ -233,9 +236,13 @@ retry:
 
 }
 
-std::string KafkaSender::jsonify(Tins::PDU &pdu) {
-    return R"({ "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } })";
-//    return ""; // dummy for now
+std::string KafkaSender::jsonify(Tins::Packet &pdu) {
+//    return R"({ "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } })";
+    rapidjson::StringBuffer sb;
+    JsonBuilder jb(std::make_unique<TinsJsonBuilder>(&pdu, std::make_unique<JsonWriter>(sb)));
+    jb.build_json();
+
+    return sb.GetString();
 }
 
 }

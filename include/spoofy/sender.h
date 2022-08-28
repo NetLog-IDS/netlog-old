@@ -13,7 +13,7 @@ namespace spoofy {
 class SendingStrategy {
 public:
     virtual ~SendingStrategy() {}  // implement this in cpp file or all hell breaks loose
-    virtual void send(Tins::PDU &p) = 0;
+    virtual void send(Tins::Packet &p) = 0;
 };
 
 /** 
@@ -45,7 +45,7 @@ class NetworkSender : public SendingStrategy {
 public:
     NetworkSender(const char *interface);
 private:
-    virtual void send(Tins::PDU &pdu);
+    virtual void send(Tins::Packet &pdu);
 
     Tins::NetworkInterface interface_;
     Tins::PacketSender packet_sender_;
@@ -73,8 +73,8 @@ public:
     KafkaSender(const char *brokers, std::array<std::string, 2> topics);
     ~KafkaSender();
 private:
-    virtual void send(Tins::PDU &pdu);
-    std::string jsonify(Tins::PDU &pdu);
+    virtual void send(Tins::Packet &pdu);
+    std::string jsonify(Tins::Packet &pdu);
 
     ExampleDeliveryReportCb ex_dr_cb_;
     RdKafka::Producer *producer1_, *producer2_;

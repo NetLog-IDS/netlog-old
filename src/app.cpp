@@ -59,61 +59,6 @@ Application::Application(int argc, char *argv[]) : ctx_(std::make_unique<Applica
 
 Application::~Application() = default;
 
-/**
- * @brief Contains the high-level application logic.
- * */
-void Application::start() { 
-    std::atomic_bool running(true);
-
-    try {
-        // Start capturing packets and store them in a queue
-        std::thread sniffer(
-                [this, &running]() {
-                    PacketSniffer ps(ctx_->args.sniffer_type, ctx_->args.interface_name.data(), ctx_->args.capture_filter.data());
-                    // PacketSniffer ps(st, iface.data(), filter.data());
-                    ps.run(ctx_->packetq, running);
-                    running.store(false); // stop running after sniffing all packets
-                });
-
-        // Consume the packets stored in the queue and send them to Apache Kafka
-        std::thread kafka_producer(
-                 [this, &running]() {
-                    while (running || !ctx_->packetq.empty()) {
-                        if (!ctx_->packetq.empty()) {
-                            Tins::Packet pkt(ctx_->packetq.pop()); 
-                            ctx_->edited_packets.push_back(pkt); //push them into a container just in case
-
-                            send_packet(ctx_.get(), pkt);
-                        }
-                    } 
-                });
-
-        if (ctx_->args.sniffer_type == SnifferType::Sniffer) {
-            // Listen for user input to stop live capture
-            std::cout << "[INFO] Live capture started on interface: " << ctx_->args.interface_name << std::endl;
-            std::thread wait_for_key([&running]() {
-                                         std::cout << "Press key to stop capture";
-                                         std::cin.get();
-
-                                         running.store(false);
-                                     });
-            wait_for_key.join();
-        } 
-        sniffer.join();
-        kafka_producer.join();
-    } catch (const std::exception &e) {
-        throw std::runtime_error(e.what());
-        return;
-    }
-
-    if (ctx_->args.sniffer_type == SnifferType::FileSniffer) {
-        std::cout << "[INFO] Read packets from capture file: " << ctx_->args.interface_name << std::endl; 
-    }
-
-    std::cout << "[INFO] Work is done! Processed "<< ctx_->edited_packets.size() << " packets.\n" << "Press any key to exit...\n";
-    std::cin.get();
-}
-
 void Application::setup() {
     // get sniffer type (read from file or live capture)
     ctx_->args.sniffer_type = ctx_->arg_parser.find_switch("l") ||
@@ -198,18 +143,61 @@ void Application::setup() {
                         return res;
                     });
     std::cout << "found topics" << ctx_->args.topics.value()[0] << ctx_->args.topics.value()[1];
+}
 
-//    // set sender based on previously set optional cli values
-//    if (ctx_->args.broker) {
-//        ctx_->sender.set_sender(std::make_unique<KafkaSender>(ctx_->args.broker.value().c_str(), ctx_->args.topics.value()));
-//    } else {
-//        if (ctx_->args.network_sending_interface) {
-//            ctx_->sender.set_sender(std::make_unique<NetworkSender>(ctx_->args.network_sending_interface.value().c_str()));
-//        } else {
-//            ctx_->sender.set_sender(std::make_unique<NetworkSender>(""));
-//        }
-//    }
+/**
+ * @brief Contains the high-level application logic.
+ * */
+void Application::start() { 
+    std::atomic_bool running(true);
+
+    try {
+        // Start capturing packets and store them in a queue
+        std::thread sniffer(
+                [this, &running]() {
+                    PacketSniffer ps(ctx_->args.sniffer_type, ctx_->args.interface_name.data(), ctx_->args.capture_filter.data());
+                    // PacketSniffer ps(st, iface.data(), filter.data());
+                    ps.run(ctx_->packetq, running);
+                    running.store(false); // stop running after sniffing all packets
+                });
+
+        // Consume the packets stored in the queue and send them to Apache Kafka
+        std::thread kafka_producer(
+                 [this, &running]() {
+                    while (running || !ctx_->packetq.empty()) {
+                        if (!ctx_->packetq.empty()) {
+                            Tins::Packet pkt(ctx_->packetq.pop()); 
+                            ctx_->edited_packets.push_back(pkt); //push them into a container just in case
+
+                            send_packet(ctx_.get(), pkt);
+                        }
+                    } 
+                });
+
+        if (ctx_->args.sniffer_type == SnifferType::Sniffer) {
+            // Listen for user input to stop live capture
+            std::cout << "[INFO] Live capture started on interface: " << ctx_->args.interface_name << std::endl;
+            std::thread wait_for_key([&running]() {
+                                         std::cout << "Press key to stop capture";
+                                         std::cin.get();
+
+                                         running.store(false);
+                                     });
+            wait_for_key.join();
+        } 
+        sniffer.join();
+        kafka_producer.join();
+    } catch (const std::exception &e) {
+        throw std::runtime_error(e.what());
+        return;
+    }
+
+    if (ctx_->args.sniffer_type == SnifferType::FileSniffer) {
+        std::cout << "[INFO] Read packets from capture file: " << ctx_->args.interface_name << std::endl; 
+    }
+
+    std::cout << "[INFO] Work is done! Processed "<< ctx_->edited_packets.size() << " packets.\n" << "Press any key to exit...\n";
+    std::cin.get();
 }
 
 }
-

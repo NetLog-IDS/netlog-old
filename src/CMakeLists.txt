@@ -1,5 +1,6 @@
 add_executable(spoofy 
         utils/rand.cpp
+        jsonbuilder.cpp
         sniffer.cpp
         spoofer.cpp
         sender.cpp
@@ -27,6 +28,7 @@ if(WIN32)
         PRIVATE ${CMAKE_SOURCE_DIR}/include 
         PRIVATE ${cclap_SOURCE_DIR}/include 
         PRIVATE ${libtins_SOURCE_DIR}/include 
+        PRIVATE ${rapidjson_SOURCE_DIR}/include
         PRIVATE ${PCAP_ROOT_DIR}/Include)
     target_compile_definitions(spoofy PRIVATE WIN32 PRIVATE TINS_STATIC)
 else()
@@ -38,7 +40,9 @@ else()
     target_include_directories(spoofy 
         PRIVATE ${CMAKE_SOURCE_DIR}/include 
         PRIVATE ${cclap_SOURCE_DIR}/include 
-        PRIVATE ${libtins_SOURCE_DIR}/include)
+        PRIVATE ${libtins_SOURCE_DIR}/include
+        PRIVATE ${rapidjson_SOURCE_DIR}/include) # add this once we online
+        #        PRIVATE ${CMAKE_SOURCE_DIR}/build/_deps/rapidjson-src/include)
 endif()
 
 

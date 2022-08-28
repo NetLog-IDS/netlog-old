@@ -29,13 +29,22 @@ FetchContent_Declare(
     librdkafka
     GIT_REPOSITORY    https://github.com/edenhill/librdkafka.git
     )
+FetchContent_Declare(
+    rapidjson
+    GIT_REPOSITORY   https://github.com/Tencent/rapidjson.git
+    )
 
-message(STATUS "Fetching cclap...")
-FetchContent_MakeAvailable(cclap)
-message(STATUS "Fetching libtins...")
-FetchContent_MakeAvailable(libtins)
-message(STATUS "Fetching librdkafka...")
-FetchContent_MakeAvailable(librdkafka)
+if (SPOOFY_FETCH_DEPS)
+    message(STATUS "Fetching cclap...")
+    FetchContent_MakeAvailable(cclap)
+    message(STATUS "Fetching libtins...")
+    FetchContent_MakeAvailable(libtins)
+    message(STATUS "Fetching librdkafka...")
+    FetchContent_MakeAvailable(librdkafka)
+    message(STATUS "Fetching rapidjson...")
+    FetchContent_MakeAvailable(rapidjson)
+endif()
+
 
 if (SPOOFY_BUILD_TESTS)
     include(FetchContent)
