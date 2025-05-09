@@ -1,10 +1,10 @@
 #ifndef _SNIFFER_H_
 #define _SNIFFER_H_
 
-#include <memory>
-#include <atomic>
-
 #include <tins/tins.h>
+
+#include <atomic>
+#include <memory>
 
 #include "spoofy/utils/queue.h"
 
@@ -19,17 +19,20 @@ enum class SnifferType { Sniffer, FileSniffer };
  * the libtins library.
  * */
 class PacketSniffer {
-public:
+   public:
     PacketSniffer(SnifferType st, const char *iface, const char *capture_filter);
     PacketSniffer() = delete;
 
-    void run(ThreadSafeQueue<Tins::Packet>& packetq, std::atomic_bool &running);
-private:
-//    bool callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running);
+    void run(ThreadSafeQueue<std::string> &packetq, std::atomic_bool &running);
+
+   private:
+    //    bool callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running);
     void setup(SnifferType st, const char *iface, const char *capture_filter);
+
+    std::string jsonify(Tins::Packet &pdu);
 
     SnifferType sniffer_type_;
     std::unique_ptr<Tins::BaseSniffer> sniffer_;
 };
-}
-#endif // _SNIFFER_H_
+}  // namespace spoofy
+#endif  // _SNIFFER_H_

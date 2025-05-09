@@ -9,13 +9,8 @@ namespace spoofy {
 // Context
 Sender::Sender(std::unique_ptr<SendingStrategy> sender) : sender_(std::move(sender)) {}
 Sender::~Sender() = default;
-void Sender::send_packet(Tins::Packet &p) { sender_->send(p); }
+void Sender::send_packet(std::string &p) { sender_->send(p); }
 void Sender::set_sender(std::unique_ptr<SendingStrategy> sending_strategy) { sender_ = std::move(sending_strategy); }
-
-// Sending packets over the network
-NetworkSender::NetworkSender(const char *interface)
-    : interface_(interface), packet_sender_(std::move(Tins::PacketSender(interface_))) {}
-void NetworkSender::send(Tins::Packet &pdu) { packet_sender_.send(*pdu.pdu()); }
 
 void ExampleDeliveryReportCb::dr_cb(RdKafka::Message &message) {
     /* If message.err() is non-zero the message delivery failed permanently
@@ -106,10 +101,7 @@ KafkaSender::~KafkaSender() {
 
 // Sending packets to Apache Kafka
 // i think this should send the json string
-void KafkaSender::send(Tins::Packet &pdu) {
-    std::string packet = jsonify(pdu);
-    std::cout << packet << "\n";
-
+void KafkaSender::send(std::string &packet) {
     /*
      * Send/Produce message.
      * This is an asynchronous call, on success it will only

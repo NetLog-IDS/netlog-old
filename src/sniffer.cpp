@@ -1,9 +1,12 @@
 #include "spoofy/sniffer.h"
 
+#include <rapidjson/document.h>
+
 #include <exception>
 #include <functional>
 #include <iostream>
 
+#include "spoofy/jsonbuilder.h"
 namespace spoofy {
 
 /**
@@ -62,16 +65,38 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *capture
  * @param[in] running Boolean used to manage running state, and end the capture
  * when needed.
  * */
-void PacketSniffer::run(ThreadSafeQueue<Tins::Packet> &packetq, std::atomic_bool &running) {
+void PacketSniffer::run(ThreadSafeQueue<std::string> &packetq, std::atomic_bool &running) {
     try {
         // sniffer_->sniff_loop(std::bind(&PacketSniffer::callback, std::placeholders::_1, packetq, running));
-        sniffer_->sniff_loop([this, &pq = packetq, &running](const Tins::Packet &packet) -> bool {
-            pq.push(packet);
+        sniffer_->sniff_loop([this, &pq = packetq, &running](Tins::Packet &packet) -> bool {
+            std::string pkt_str = jsonify(packet);
+
+            rapidjson::Document document;
+            document.Parse(pkt_str.c_str());
+
+            if (document.HasParseError()) {
+                return true;
+            }
+
+            if (!document["layers"].HasMember("transport")) {
+                // It will skip some packets, which can make "order" field missing
+                return true;
+            }
+
+            pq.push(pkt_str);
             return running.load();
         });
     } catch (const std::exception &ex) {
         throw std::runtime_error(ex.what());
     }
+}
+
+std::string PacketSniffer::jsonify(Tins::Packet &pdu) {
+    rapidjson::StringBuffer sb;
+    JsonBuilder jb(std::make_unique<TinsJsonBuilder>(&pdu, std::make_unique<JsonWriter>(sb)));
+    jb.build_json();
+
+    return sb.GetString();
 }
 
 }  // namespace spoofy

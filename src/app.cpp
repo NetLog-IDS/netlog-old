@@ -1,5 +1,7 @@
 #include "spoofy/app.h"
 
+#include <rapidjson/document.h>
+
 #include <atomic>
 #include <iostream>
 #include <memory>
@@ -12,7 +14,6 @@
 #include "spoofy/sender.h"
 #include "spoofy/sniffer.h"
 #include "spoofy/utils/rand.h"
-
 namespace spoofy {
 
 struct ApplicationContext {
@@ -28,21 +29,15 @@ struct ApplicationContext {
         std::optional<std::string> network_sending_interface;
     } args;
 
-    ThreadSafeQueue<Tins::Packet> packetq;
-    std::vector<Tins::Packet> edited_packets;
+    ThreadSafeQueue<std::string> packetq;
+    std::vector<std::string> edited_packets;
 };
 
 // send the network packet with the designated sender, depending on provided cmdline arguments
-static void send_packet(ApplicationContext *ctx, Tins::Packet &pkt) {
+static void send_packet(ApplicationContext *ctx, std::string &pkt) {
     Sender s;
     if (ctx->args.broker) {
         s.set_sender(std::make_unique<KafkaSender>(ctx->args.broker.value().c_str(), ctx->args.topics.value()));
-    } else {
-        if (ctx->args.network_sending_interface) {
-            s.set_sender(std::make_unique<NetworkSender>(ctx->args.network_sending_interface.value().c_str()));
-        } else {
-            s.set_sender(std::make_unique<NetworkSender>(""));
-        }
     }
     s.send_packet(pkt);
 }
@@ -161,6 +156,7 @@ void Application::start() {
             PacketSniffer ps(ctx_->args.sniffer_type, ctx_->args.interface_name.data(),
                              ctx_->args.capture_filter.data());
             // PacketSniffer ps(st, iface.data(), filter.data());
+            std::cout << "[INFO] Starting capture..." << std::endl;
             ps.run(ctx_->packetq, running);
             running.store(false);  // stop running after sniffing all packets
         });
@@ -169,7 +165,7 @@ void Application::start() {
         std::thread kafka_producer([this, &running]() {
             while (running || !ctx_->packetq.empty()) {
                 if (!ctx_->packetq.empty()) {
-                    Tins::Packet pkt(ctx_->packetq.pop());
+                    std::string pkt(ctx_->packetq.pop());
                     ctx_->edited_packets.push_back(pkt);  // push them into a container just in case
 
                     send_packet(ctx_.get(), pkt);
