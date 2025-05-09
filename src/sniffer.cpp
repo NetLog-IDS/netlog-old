@@ -1,8 +1,8 @@
 #include "spoofy/sniffer.h"
 
-#include <iostream>
 #include <exception>
 #include <functional>
+#include <iostream>
 
 namespace spoofy {
 
@@ -14,9 +14,7 @@ namespace spoofy {
  * @param[in] capture_filter Type of packet to capture, contains PCAP filter
  * @returns PacketSniffer object
  * */
-PacketSniffer::PacketSniffer(SnifferType st,
-                             const char *iface,
-                             const char *capture_filter) : sniffer_type_(st){ 
+PacketSniffer::PacketSniffer(SnifferType st, const char *iface, const char *capture_filter) : sniffer_type_(st) {
     setup(st, iface, capture_filter);
 }
 
@@ -52,7 +50,7 @@ void PacketSniffer::setup(SnifferType st, const char *iface, const char *capture
  * @param[in] running Boolean used to manage running state, and end the capture
  * when needed.
  * */
-/* bool PacketSniffer::callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running) { 
+/* bool PacketSniffer::callback(const Tins::Packet &packet, ThreadSafeQueue<Tins::Packet> &packetq, bool &running) {
     packetq.push(packet);
     return running;
 } */
@@ -68,12 +66,12 @@ void PacketSniffer::run(ThreadSafeQueue<Tins::Packet> &packetq, std::atomic_bool
     try {
         // sniffer_->sniff_loop(std::bind(&PacketSniffer::callback, std::placeholders::_1, packetq, running));
         sniffer_->sniff_loop([this, &pq = packetq, &running](const Tins::Packet &packet) -> bool {
-                                 pq.push(packet);
-                                 return running.load();
-                             });
+            pq.push(packet);
+            return running.load();
+        });
     } catch (const std::exception &ex) {
         throw std::runtime_error(ex.what());
     }
 }
 
-}
+}  // namespace spoofy

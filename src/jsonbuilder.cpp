@@ -1,4 +1,5 @@
 #include "spoofy/jsonbuilder.h"
+
 #include <algorithm>
 #include <memory>
 
@@ -7,47 +8,45 @@ namespace spoofy {
 static uint32_t packet_num_;
 
 // Context
-JsonBuilder::JsonBuilder(
-    std::unique_ptr<IJsonBuilder> builder) :
-    builder_(std::move(builder)) {}
+JsonBuilder::JsonBuilder(std::unique_ptr<IJsonBuilder> builder) : builder_(std::move(builder)) {}
 JsonBuilder::~JsonBuilder() = default;
-void JsonBuilder::build_json() { builder_->build_json(); } // might not work as expected
+void JsonBuilder::build_json() { builder_->build_json(); }  // might not work as expected
 void JsonBuilder::set_builder(std::unique_ptr<IJsonBuilder> builder) { builder_ = std::move(builder); }
 
-TinsJsonBuilder::TinsJsonBuilder(Tins::Packet *packet, std::unique_ptr<JsonWriter> writer) :
-    packet_adapter_([&]{
-             PacketAdapter res { 0 };
+TinsJsonBuilder::TinsJsonBuilder(Tins::Packet *packet, std::unique_ptr<JsonWriter> writer)
+    : packet_adapter_([&] {
+          PacketAdapter res{0};
 
-             res.orig_packet = packet;
-             res.eth = packet->pdu()->find_pdu<Tins::EthernetII>();
-             res.ip =  packet->pdu()->find_pdu<Tins::IP>();
-             res.ipv6 =  packet->pdu()->find_pdu<Tins::IPv6>();
-             res.tcp =  packet->pdu()->find_pdu<Tins::TCP>();
-             res.udp =  packet->pdu()->find_pdu<Tins::UDP>();
-             res.raw =  packet->pdu()->find_pdu<Tins::RawPDU>();
+          res.orig_packet = packet;
+          res.eth = packet->pdu()->find_pdu<Tins::EthernetII>();
+          res.ip = packet->pdu()->find_pdu<Tins::IP>();
+          res.ipv6 = packet->pdu()->find_pdu<Tins::IPv6>();
+          res.tcp = packet->pdu()->find_pdu<Tins::TCP>();
+          res.udp = packet->pdu()->find_pdu<Tins::UDP>();
+          res.raw = packet->pdu()->find_pdu<Tins::RawPDU>();
 
-             return res;
-         }()),
-    writer_(std::move(writer)) {}
+          return res;
+      }()),
+      writer_(std::move(writer)) {}
 
 void TinsJsonBuilder::build_json() {
     packet_num_++;
 
     writer_->StartObject();
 
-    add_timestamp(); 
+    add_timestamp();
 
     writer_->Key("layers");
     writer_->StartObject();
 
-    add_frame_metadata(); 
-    add_datalink(); 
-    add_network(); 
+    add_frame_metadata();
+    add_datalink();
+    add_network();
 
-    //layers
+    // layers
     writer_->EndObject();
 
-    //timestamp
+    // timestamp
     writer_->EndObject();
 }
 
@@ -77,36 +76,36 @@ void TinsJsonBuilder::add_frame_metadata() {
     writer_->Key("frame_frame_time");
     writer_->String(micro.c_str());
 
-    //frame number
+    // frame number
     writer_->Key("frame_frame_number");
     writer_->Uint(packet_num_);
 
-    //frame length
-    //frame protocols
+    // frame length
+    // frame protocols
     uint32_t frame_length = 0;
     std::string protocols = "";
-    if(packet_adapter_.eth) {
+    if (packet_adapter_.eth) {
         protocols += "eth";
 
         frame_length += packet_adapter_.eth->header_size() + packet_adapter_.eth->trailer_size();
 
-        if(packet_adapter_.ip) {
-            //calc len as above, u know where
+        if (packet_adapter_.ip) {
+            // calc len as above, u know where
             protocols += ":ip";
             frame_length += packet_adapter_.ip->tot_len();
         }
 
-        if(packet_adapter_.ipv6) {
+        if (packet_adapter_.ipv6) {
             protocols += ":ipv6";
             frame_length += 40 + packet_adapter_.ipv6->payload_length();
         }
 
-        if(packet_adapter_.tcp) {
+        if (packet_adapter_.tcp) {
             protocols += ":tcp";
             protocols += packet_adapter_.raw ? ":payload" : "";
         }
 
-        if(packet_adapter_.udp) {
+        if (packet_adapter_.udp) {
             protocols += ":udp";
             protocols += packet_adapter_.raw ? ":payload" : "";
         }
@@ -144,8 +143,8 @@ void TinsJsonBuilder::add_datalink() {
 
 void TinsJsonBuilder::add_network() {
     // TODO: make API for adding network layer data
-    if(packet_adapter_.ip) {
-        //maybe we need to account for ipv6
+    if (packet_adapter_.ip) {
+        // maybe we need to account for ipv6
         writer_->Key("ip");
         writer_->StartObject();
 
@@ -160,12 +159,12 @@ void TinsJsonBuilder::add_network() {
         writer_->Key("ip_ip_id");
         writer_->Uint(packet_adapter_.ip->id());
 
-        //flags here
+        // flags here
         uint8_t flags = packet_adapter_.ip->flags();
         writer_->Key("ip_ip_flags");
         writer_->Uint(flags);
 
-        //bit 0 is mf, bit 1 is df, bit 2 is rb
+        // bit 0 is mf, bit 1 is df, bit 2 is rb
         writer_->Key("ip_ip_flags_rb");
         writer_->Uint((flags >> 2) & 1);
         writer_->Key("ip_ip_flags_df");
@@ -189,8 +188,8 @@ void TinsJsonBuilder::add_network() {
         writer_->EndObject();
     }
 
-    if(packet_adapter_.ipv6) {
-        //ipv6
+    if (packet_adapter_.ipv6) {
+        // ipv6
         writer_->Key("ipv6");
         writer_->StartObject();
 
@@ -215,4 +214,4 @@ void TinsJsonBuilder::add_network() {
     }
 }
 
-}
+}  // namespace spoofy
