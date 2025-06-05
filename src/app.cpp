@@ -153,9 +153,6 @@ void Application::setup() {
 void Application::start() {
     std::atomic_bool running(true);
 
-    const std::string dir_path = "/app/utils/eval/throughput-old";
-    const std::string file_path = dir_path + "/netlog_throughput_log.csv";
-
     try {
         // Start capturing packets and store them in a queue
         std::thread sniffer([this, &running]() {
@@ -167,34 +164,16 @@ void Application::start() {
             running.store(false);  // stop running after sniffing all packets
         });
 
-        std::atomic<int> packet_counter{0};
         // Consume the packets stored in the queue and send them to Apache Kafka
-        std::thread kafka_producer([this, &running, &packet_counter]() {
+        std::thread kafka_producer([this, &running]() {
             while (running || !ctx_->packetq.empty()) {
                 if (!ctx_->packetq.empty()) {
                     std::string pkt(ctx_->packetq.pop());
                     ctx_->edited_packets.push_back(pkt);  // push them into a container just in case
 
                     send_packet(ctx_.get(), pkt);
-                    packet_counter.fetch_add(1);
                 }
             }
-        });
-
-        std::atomic<bool> monitor_throughput{true};
-        std::thread throughput_monitor([&]() {
-            std::ofstream throughput_log(file_path);
-            throughput_log << "timestamp,packets_sent\n";
-
-            while (monitor_throughput.load()) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                int packets = packet_counter.exchange(0);  // ambil dan reset ke 0
-                auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                throughput_log << std::put_time(std::localtime(&now), "%F %T") << "," << packets << "\n";
-            }
-
-            throughput_log.close();
         });
 
         if (ctx_->args.sniffer_type == SnifferType::Sniffer) {
@@ -210,9 +189,6 @@ void Application::start() {
         }
         sniffer.join();
         kafka_producer.join();
-        monitor_throughput.store(false);
-        std::cout << "[INFO] Throughput log saved to netlog_throughput_log.csv" << std::endl;
-        throughput_monitor.join();
     } catch (const std::exception &e) {
         throw std::runtime_error(e.what());
         return;

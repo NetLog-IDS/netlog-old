@@ -1,117 +1,150 @@
-# netlog - network traffic logger
+# Netlog (Old) - Network Traffic Logger
 
-A network packet logger written in C++ 17.
+Netlog is a high-performance network packet logger written in modern C++ (C++17). This legacy version focuses on capturing live or recorded network traffic and streaming it in real time to external systems like Apache Kafka or to a remote machine using raw packets.
 
-## Features
+> ✅ This is the old version of Netlog. For the new (fixed) version, refer to [`Netlog-new`](https://github.com/NetLog-IDS/netlog-new).
 
-- capture network packets
-- convert them to json strings
-- stream network packet data in real time to
-    - apache kafka (ksqldb) via librdkafka
-    - network location via libtins packet sender
+---
 
-## Usage
+## ✨ Features
 
-### Streaming network packets to Apache kafka
+- Capture packets from a network interface or PCAP file
+- Filter captured packets using Berkeley Packet Filter (BPF) syntax
+- Convert packet data to JSON
+- Stream data in real-time to:
+  - **Apache Kafka** via `librdkafka`
+  - **Network host** via `libtins` (raw packet sender)
 
-```bash
-sudo ./netlog -i INTERFACE -f FILTER --live --sender kafka --broker BROKER_NAME --topic TOPIC_NAME 
-# Example
-sudo ./netlog -i wlp3s0 --live --sender kafka --broker localhost:9092 --topic network-traffic 
-```
+---
 
-Testing the streaming functionality is as simple as:
+## 🚀 Usage
 
-- Setup ksqldb
+### Run with Live Network Interface
 
 ```bash
-git clone https://github.com/Zenika/ids-ksql.git
-cd ids-ksql
-docker-compose up -d
+sudo ./build/bin/spoofy \
+  -i <INTERFACE> \
+  -f <FILTER> \
+  --live \
+  --sender kafka \
+  --broker <BROKER_HOST>:<PORT> \
+  --topic <TOPIC>
 ```
 
-- Create topic
+### Example:
 
 ```bash
-docker-compose exec kafka kafka-topics --zookeeper zookeeper:2181 --create --topic network-traffic --partitions 1 --replication-factor 1
+sudo ./build/bin/spoofy \
+  -i lo \
+  -f 'tcp or udp' \
+  --live \
+  --sender kafka \
+  --broker localhost:19092 \
+  --topic network-traffic
 ```
 
-- Connect to ksql-cli
+### Run with PCAP File
 
 ```bash
-docker-compose exec ksql-cli ksql http://ksql-server:8088
+sudo ./build/bin/spoofy \
+  -i ./path/to/file.pcap \
+  -f <FILTER> \
+  --sender kafka \
+  --broker <BROKER_HOST>:<PORT> \
+  --topic <TOPIC>
 ```
 
-- List all data in created topic
+### Example:
 
 ```bash
-ksql> print 'network-traffic';
+sudo ./build/bin/spoofy \
+  -i ./utils/pcap/dos_first_100k.pcap \
+  -f 'tcp or udp' \
+  --sender kafka \
+  --broker localhost:19092 \
+  --topic network-traffic
 ```
 
-- Start the tool and view the network packets being sent in real time
+## 🐳 Run with Docker
+
+### Build the Docker image
 
 ```bash
-sudo ./netlog -i wlp3s0 --live --sender kafka --broker localhost:9092 --topic network-traffic 
+docker build -t <USERNAME>/netlog-old .
 ```
 
-### Streaming data using libtins PacketSender (work in progress)
+### Run the Docker image
 
 ```bash
-sudo ./netlog -i INTERFACE -f FILTER --live --sender network
-# Example
-sudo ./netlog -i wlp3s0 --live --sender network
+sudo docker run \
+  -d \
+  -it \
+  --rm \
+  --name netlog \
+  --hostname netlog \
+  --network host \
+  --entrypoint bash \
+  <USERNAME>/netlog-old:latest \
+  -c "/usr/local/bin/spoofy \
+      -i lo \
+      --live \
+      -f 'tcp or udp' \
+      --sender kafka \
+      --broker <IP_BROKER>:<PORT_BROKER> \
+      --topic network-traffic"
 ```
 
-## Dependencies
+## 🧾 Flag Definitions
 
-- libpcap
+| Flag       | Description                                          |
+| ---------- | ---------------------------------------------------- |
+| `-i`       | Interface name or PCAP file path                     |
+| `-f`       | BPF filter expression (e.g., `'tcp or udp'`)         |
+| `--live`   | Capture packets from a live network interface        |
+| `--sender` | Output mode: `kafka` or `raw`                        |
+| `--broker` | Kafka broker address (required if sender is `kafka`) |
+| `--topic`  | Kafka topic name to send data to                     |
+
+## 🛠️ Dependencies
+
+- [libpcap](https://www.tcpdump.org/)
+- [librdkafka](https://github.com/confluentinc/librdkafka)
 - [cmake](https://cmake.org/)
 - [libtins](https://github.com/mfontanini/libtins)
 - [catch2](https://github.com/catchorg/Catch2)
 - [cclap](https://github.com/adriancostin6/cclap)
 
-## How-to
+## ⚙️ Build Instructions
 
-### Setup
-
-Most of the dependencies are handled during the build process, but some may require prior preparation if not installed. 
-For this purpose, a configuration script is provided for both Windows and *NIX based systems.
+Most of the dependencies are handled during the build process, but some may require prior preparation if not installed.
+For this purpose, a configuration script is provided for both Windows and \*NIX based systems.
 Do note the possibility of this script failing and requiring manual intervention depending on platform.
 Covered ones are: Windows, MacOS, Linux (may fail depending on your package manager, see setup/setup.sh).
 
-### Building the project
+### Linux/macOS
 
-#### Linux, MacOs, other *nix based systems
-
-```bash 
-$ git clone https://github.com/adriancostin6/netlog.git
-$ cd netlog
-$ ./configure.sh 
-$ make
+```bash
+git clone https://github.com/NetLog-IDS/netlog-old.git
+cd netlog-old
+./configure.sh
+make debug
 ```
 
-#### Windows
+### Windows
 
 In order to build on Windows, WinPcap or Npcap is required, along with the WinPcap development pack.
-The configuration script tries to provide these using the chocolatey package manager by installing 
+The configuration script tries to provide these using the chocolatey package manager by installing
 WinPcap and fetching the development pack automatically.
 
-```bash 
-$ git clone https://github.com/adriancostin6/netlog.git
-$ cd netlog
-$ configure.bat 
-$ make
+```bash
+git clone https://github.com/NetLog-IDS/netlog-old.git
+cd netlog-old
+configure.bat
+make debug
 ```
 
-If you wish to install these manually, or don't have the chocolatey package manager and don't wish to bother
-installing it, follow the steps below:
+If manually:
 
 - Install WinPcap or Npcap (Npcap is recommended)
 - Get [WinPcap developer pack](https://www.winpcap.org/devel.htm) and place it in the `spoofy\ext` folder.
-- Run make, and pray.
-
-## TODOS
-
-- [ ] Improve Network sender configurability (currently hard-coded as a proof of concept)
-- [ ] Improve packet representation accuracy (protocols)
-- [ ] Improve or remove spoofer implementation 
+- Run `make debug`

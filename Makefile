@@ -35,9 +35,9 @@ debug:
 	cmake .. -DCMAKE_BUILD_TYPE=Debug $(CMAKE_FLAGS) $(LIBTINS_FLAGS) $(SPOOFY_FLAGS) $(RDKAFKA_FLAGS) $(RAPIDJSON_FLAGS);\
 	cmake --build . ;\
 	echo "Build finished, to run: "
-	echo "sudo ./build/bin/spoofy -i wlo1 --live -f -f 'tcp or udp' --sender kafka --broker localhost:19092 --topic network-traffic"
+	echo "sudo ./build/bin/spoofy -i wlo1 --live -f 'tcp or udp' --sender kafka --broker localhost:19092 --topic network-traffic"
 	echo "Or to run from file pcap: "
-	echo "sudo ./build/bin/spoofy -i /mnt/extra/datasets/processed/test.pcap -f 'tcp or udp' --sender kafka --broker localhost:19092 --topic network-traffic"
+	echo "sudo ./build/bin/spoofy -i ./utils/pcap/dos_first_100k.pcap -f 'tcp or udp' --sender kafka --broker localhost:19092 --topic network-traffic"
 	
 release:
 	$(MK_BUILD_DIR)
